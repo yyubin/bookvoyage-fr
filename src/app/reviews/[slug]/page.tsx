@@ -1,23 +1,33 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { reviews } from "../../data/reviews";
+import { getCommentsByReview } from "../../services/commentService";
+import { getReviewBySlug, getReviews } from "../../services/reviewService";
 import CommentModalTrigger from "./CommentModalTrigger";
 
 type ReviewPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return reviews.map((review) => ({ slug: review.slug }));
+export async function generateStaticParams() {
+  const reviewPage = await getReviews({ cursor: null, limit: 200 });
+  return reviewPage.items.map((review) => ({ slug: review.slug }));
 }
 
 export default async function ReviewPage({ params }: ReviewPageProps) {
   const { slug } = await params;
-  const review = reviews.find((item) => item.slug === slug);
+  const review = await getReviewBySlug(slug);
 
   if (!review) {
     notFound();
   }
+
+  const [commentsPage, allReviewsPage] = await Promise.all([
+    getCommentsByReview(review.id, { cursor: null, limit: 10 }),
+    getReviews({ cursor: null, limit: 200 }),
+  ]);
+
+  const comments = commentsPage.items;
+  const allReviews = allReviewsPage.items;
 
   return (
     <div className="paper-texture min-h-screen">
@@ -75,14 +85,19 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
                     ))}
                   </div>
                   <CommentModalTrigger
+                    reviewId={review.id}
                     commentsCount={review.comments}
-                    commentList={review.commentList}
+                    initialComments={comments}
+                    initialCursor={commentsPage.nextCursor}
                   />
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-sm text-[var(--muted)]">
-                  <span className="font-semibold text-[var(--ink)]">
+                  <Link
+                    href={`/profile/${review.reviewerId}`}
+                    className="font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
+                  >
                     {review.reviewer}
-                  </span>
+                  </Link>
                   <span className="h-1 w-1 rounded-full bg-[var(--muted)]" />
                   <span>리뷰어</span>
                   <span className="h-1 w-1 rounded-full bg-[var(--muted)]" />
@@ -143,7 +158,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
                 </span>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {reviews
+                {allReviews
                   .filter((item) => item.slug !== review.slug)
                   .slice(0, 4)
                   .map((item) => (
@@ -199,20 +214,25 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-serif text-xl font-semibold">댓글</h3>
                 <CommentModalTrigger
+                  reviewId={review.id}
                   commentsCount={review.comments}
-                  commentList={review.commentList}
+                  initialComments={comments}
+                  initialCursor={commentsPage.nextCursor}
                 />
               </div>
               <div className="mt-4 space-y-4 text-sm">
-                {review.commentList.map((comment) => (
+                {comments.map((comment) => (
                   <div
                     key={`${comment.user}-${comment.time}`}
                     className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3"
                   >
                     <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-                      <span className="font-semibold text-[var(--ink)]">
+                      <Link
+                        href={`/profile/${comment.userId}`}
+                        className="font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
+                      >
                         {comment.user}
-                      </span>
+                      </Link>
                       <span>{comment.time}</span>
                     </div>
                     <p className="mt-2 text-sm text-[var(--muted)]">

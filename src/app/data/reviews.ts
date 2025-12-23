@@ -7,6 +7,7 @@ export const reviews: ReviewItem[] = [
     title: "미드나잇 라이브러리",
     author: "매트 헤이그",
     reviewer: "김하나",
+    reviewerId: "user-001",
     blurb:
       "선택하지 못했던 삶을 조용히 걷게 해주는 책. 마지막 장이 특히 오래 남았다.",
     rating: "4.6",
@@ -29,12 +30,14 @@ export const reviews: ReviewItem[] = [
       {
         id: "comment-001",
         user: "서연",
+        userId: "user-201",
         time: "35분 전",
         content: "마지막 문장에 울컥했어요. 다시 읽어야겠네요.",
       },
       {
         id: "comment-002",
         user: "민준",
+        userId: "user-202",
         time: "2시간 전",
         content: "선택의 무게를 덜어주는 느낌이 좋았어요.",
       },
@@ -46,6 +49,7 @@ export const reviews: ReviewItem[] = [
     title: "기억 전달자",
     author: "로이스 로리",
     reviewer: "정유진",
+    reviewerId: "user-004",
     blurb:
       "선택지가 없는 세상에서 선택을 배우는 성장 서사. 차가운 배경이 더욱 선명했다.",
     rating: "4.4",
@@ -65,12 +69,14 @@ export const reviews: ReviewItem[] = [
       {
         id: "comment-003",
         user: "은서",
+        userId: "user-203",
         time: "3시간 전",
         content: "사회가 얼마나 쉽게 순응하게 되는지 생각했어요.",
       },
       {
         id: "comment-004",
         user: "준호",
+        userId: "user-204",
         time: "어제",
         content: "결말에서 울컥했습니다. 한 번 더 읽을래요.",
       },
@@ -82,6 +88,7 @@ export const reviews: ReviewItem[] = [
     title: "아몬드",
     author: "손원평",
     reviewer: "이하늘",
+    reviewerId: "user-005",
     blurb:
       "감정을 느끼지 못하는 소년이 세계와 연결되는 방식이 조용히 따뜻하다.",
     rating: "4.3",
@@ -101,12 +108,14 @@ export const reviews: ReviewItem[] = [
       {
         id: "comment-005",
         user: "나린",
+        userId: "user-205",
         time: "6시간 전",
         content: "잔잔한데도 마음이 많이 흔들렸어요.",
       },
       {
         id: "comment-006",
         user: "석진",
+        userId: "user-206",
         time: "2일 전",
         content: "주인공의 시선이 오래 기억에 남네요.",
       },
@@ -118,6 +127,7 @@ export const reviews: ReviewItem[] = [
     title: "편의점 인간",
     author: "무라타 사야카",
     reviewer: "최은지",
+    reviewerId: "user-006",
     blurb:
       "정상성의 테두리 밖에서 자신만의 리듬을 지키는 이야기.",
     rating: "4.1",
@@ -137,12 +147,14 @@ export const reviews: ReviewItem[] = [
       {
         id: "comment-007",
         user: "지후",
+        userId: "user-207",
         time: "5시간 전",
         content: "읽고 나서 내가 가진 고정관념을 돌아봤어요.",
       },
       {
         id: "comment-008",
         user: "소희",
+        userId: "user-208",
         time: "어제",
         content: "짧지만 여운이 길어요.",
       },
@@ -154,6 +166,7 @@ export const reviews: ReviewItem[] = [
     title: "파친코",
     author: "이민진",
     reviewer: "박지수",
+    reviewerId: "user-002",
     blurb:
       "세대를 건너 이어지는 사랑과 생존의 기록. 가족 앨범처럼 촘촘하다.",
     rating: "4.9",
@@ -176,12 +189,14 @@ export const reviews: ReviewItem[] = [
       {
         id: "comment-009",
         user: "지안",
+        userId: "user-209",
         time: "1시간 전",
         content: "등장인물들이 너무 현실적이라 더 아팠어요.",
       },
       {
         id: "comment-010",
         user: "도윤",
+        userId: "user-210",
         time: "5시간 전",
         content: "세대가 바뀌어도 이어지는 감정선이 최고였습니다.",
       },
@@ -193,6 +208,7 @@ export const reviews: ReviewItem[] = [
     title: "페이퍼 팰리스",
     author: "미란다 카울리 헬러",
     reviewer: "조아리",
+    reviewerId: "user-003",
     blurb:
       "햇살과 기억이 겹친 여름. 소나무 냄새가 나는 장면들이 오래 남았다.",
     rating: "4.2",
@@ -212,12 +228,14 @@ export const reviews: ReviewItem[] = [
       {
         id: "comment-011",
         user: "윤아",
+        userId: "user-211",
         time: "어제",
         content: "스포일러 표기가 있어서 안심하고 읽었어요.",
       },
       {
         id: "comment-012",
         user: "현우",
+        userId: "user-212",
         time: "3일 전",
         content: "여름 감성 가득해서 마음이 차분해졌습니다.",
       },

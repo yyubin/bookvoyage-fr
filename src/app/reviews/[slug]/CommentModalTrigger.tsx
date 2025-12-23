@@ -1,18 +1,87 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { getCommentsByReview } from "../../services/commentService";
 import type { ReviewComment } from "../../types/content";
 
 type CommentModalTriggerProps = {
+  reviewId: string;
   commentsCount: string;
-  commentList: ReviewComment[];
+  initialComments: ReviewComment[];
+  initialCursor: string | null;
 };
 
 export default function CommentModalTrigger({
+  reviewId,
   commentsCount,
-  commentList,
+  initialComments,
+  initialCursor,
 }: CommentModalTriggerProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [comments, setComments] = useState(initialComments);
+  const [nextCursor, setNextCursor] = useState(initialCursor);
+  const [isLoading, setIsLoading] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const loadMore = async () => {
+    if (!nextCursor || isLoading) {
+      return;
+    }
+    setIsLoading(true);
+    const page = await getCommentsByReview(reviewId, {
+      cursor: nextCursor,
+      limit: 8,
+    });
+    setComments((prev) => [...prev, ...page.items]);
+    setNextCursor(page.nextCursor);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const refresh = async () => {
+      setIsLoading(true);
+      const page = await getCommentsByReview(reviewId, {
+        cursor: null,
+        limit: 8,
+      });
+      setComments(page.items);
+      setNextCursor(page.nextCursor);
+      setIsLoading(false);
+    };
+
+    void refresh();
+  }, [isOpen, reviewId]);
+
+  useEffect(() => {
+    if (!isOpen || !nextCursor) {
+      return;
+    }
+
+    const sentinel = sentinelRef.current;
+    if (!sentinel) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void loadMore();
+        }
+      },
+      { rootMargin: "120px" },
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isOpen, nextCursor]);
 
   return (
     <>
@@ -46,15 +115,18 @@ export default function CommentModalTrigger({
               </button>
             </div>
             <div className="mt-4 space-y-3 text-sm">
-              {commentList.map((comment) => (
+              {comments.map((comment) => (
                 <div
                   key={`${comment.user}-${comment.time}`}
                   className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3"
                 >
                   <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-                    <span className="font-semibold text-[var(--ink)]">
+                    <Link
+                      href={`/profile/${comment.userId}`}
+                      className="font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
+                    >
                       {comment.user}
-                    </span>
+                    </Link>
                     <span>{comment.time}</span>
                   </div>
                   <p className="mt-2 text-sm text-[var(--muted)]">
@@ -62,7 +134,32 @@ export default function CommentModalTrigger({
                   </p>
                 </div>
               ))}
+              {isLoading && comments.length === 0
+                ? Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={`comment-skeleton-${index}`}
+                      className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3"
+                    >
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="h-3 w-16 animate-pulse rounded bg-[var(--paper-strong)]" />
+                        <div className="h-3 w-10 animate-pulse rounded bg-[var(--paper-strong)]" />
+                      </div>
+                      <div className="mt-3 h-3 w-full animate-pulse rounded bg-[var(--paper-strong)]" />
+                      <div className="mt-2 h-3 w-5/6 animate-pulse rounded bg-[var(--paper-strong)]" />
+                    </div>
+                  ))
+                : null}
             </div>
+            {nextCursor ? (
+              <div className="mt-4 flex justify-center">
+                <div
+                  ref={sentinelRef}
+                  className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-semibold text-[var(--muted)]"
+                >
+                  {isLoading ? "불러오는 중..." : "다음 댓글 불러오기"}
+                </div>
+              </div>
+            ) : null}
             <div className="mt-5">
               <textarea
                 className="h-28 w-full resize-none rounded-2xl border border-[var(--border)] bg-white/90 px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"

@@ -1,4 +1,8 @@
-import { followers, following, profile } from "../data/profile";
+import {
+  followersByUserId,
+  followingByUserId,
+  profilesById,
+} from "../data/profile";
 import type {
   CursorPage,
   CursorQuery,
@@ -34,7 +38,7 @@ export async function getProfileSummary(
   userId: string,
 ): Promise<ProfileSummary> {
   const apiResult = await fetchProfileFromApi(userId);
-  return apiResult ?? profile;
+  return apiResult ?? profilesById[userId] ?? profilesById["user-001"];
 }
 
 export async function getProfileStats(
@@ -59,8 +63,10 @@ export async function getFollowers(
     return apiResult;
   }
 
+  const fallback = followersByUserId[userId] ?? followersByUserId["user-001"];
+
   return paginateWithCursor({
-    items: followers,
+    items: fallback,
     cursor: query.cursor,
     limit: query.limit,
   });
@@ -76,8 +82,10 @@ export async function getFollowing(
     return apiResult;
   }
 
+  const fallback = followingByUserId[userId] ?? followingByUserId["user-001"];
+
   return paginateWithCursor({
-    items: following,
+    items: fallback,
     cursor: query.cursor,
     limit: query.limit,
   });

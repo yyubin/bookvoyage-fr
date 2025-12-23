@@ -1,29 +1,35 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { books } from "../../data/books";
-import { reviews } from "../../data/reviews";
+import { getBooks } from "../../services/bookService";
+import { getReviews } from "../../services/reviewService";
 
 type BookPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return books.map((book) => ({ slug: book.slug }));
+export async function generateStaticParams() {
+  const bookPage = await getBooks({ cursor: null, limit: 200 });
+  return bookPage.items.map((book) => ({ slug: book.slug }));
 }
 
 export default async function BookPage({ params }: BookPageProps) {
   const { slug } = await params;
-  const book = books.find((item) => item.slug === slug);
+  const [bookPage, reviewPage] = await Promise.all([
+    getBooks({ cursor: null, limit: 200 }),
+    getReviews({ cursor: null, limit: 200 }),
+  ]);
+
+  const book = bookPage.items.find((item) => item.slug === slug);
 
   if (!book) {
     notFound();
   }
 
-  const relatedReviews = reviews.filter(
+  const relatedReviews = reviewPage.items.filter(
     (review) => review.title === book.title,
   );
 
-  const fallbackReviews = reviews
+  const fallbackReviews = reviewPage.items
     .filter((review) => review.title !== book.title)
     .slice(0, 3);
 
@@ -129,9 +135,12 @@ export default async function BookPage({ params }: BookPageProps) {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-sm font-semibold text-[var(--ink)]">
+                      <Link
+                        href={`/profile/${review.reviewerId}`}
+                        className="text-sm font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
+                      >
                         {review.reviewer}
-                      </p>
+                      </Link>
                       <p className="text-xs text-[var(--muted)]">
                         평점 {review.rating}
                       </p>

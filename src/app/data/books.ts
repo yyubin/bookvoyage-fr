@@ -31,4 +31,34 @@ export const books: BookItem[] = [
     highlights: ["고독한 청춘", "기억의 계절", "잔잔한 여운"],
     coverTone: "forest",
   },
+  {
+    id: "book-004",
+    slug: "midnight-library",
+    title: "밤의 도서관",
+    author: "매트 헤이그",
+    description:
+      "다른 삶의 문을 열어보며 현재를 다시 바라보게 되는 이야기.",
+    highlights: ["선택의 가능성", "후회와 위로", "조용한 성장"],
+    coverTone: "warm",
+  },
+  {
+    id: "book-005",
+    slug: "farewell",
+    title: "작별인사",
+    author: "김영하",
+    description:
+      "기억과 감정의 경계에서 인간다움을 다시 묻는 소설.",
+    highlights: ["기억의 경계", "인간다움", "감정의 회복"],
+    coverTone: "sunset",
+  },
+  {
+    id: "book-006",
+    slug: "comfort-store",
+    title: "불편한 편의점",
+    author: "김호연",
+    description:
+      "편의점이라는 작은 공간에서 피어나는 관계와 회복의 이야기.",
+    highlights: ["작은 공동체", "회복과 연대", "따뜻한 유머"],
+    coverTone: "forest",
+  },
 ];

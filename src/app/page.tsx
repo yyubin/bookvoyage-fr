@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { books } from "./data/books";
-import { reviews } from "./data/reviews";
+import BookPicks from "./components/BookPicks";
+import ReviewFeed from "./components/ReviewFeed";
+import { getBooks } from "./services/bookService";
+import { getReviews } from "./services/reviewService";
 
 const carouselPicks = [
   "잔잔한 몰입",
@@ -10,7 +12,12 @@ const carouselPicks = [
   "가족을 닮은 관계",
 ];
 
-export default function Home() {
+export default async function Home() {
+  const [bookPage, reviewPage] = await Promise.all([
+    getBooks({ cursor: null, limit: 3 }),
+    getReviews({ cursor: null, limit: 4 }),
+  ]);
+
   return (
     <div className="paper-texture min-h-screen">
       <div className="mx-auto max-w-6xl px-6 pb-16 pt-8 sm:px-8">
@@ -119,22 +126,10 @@ export default function Home() {
               추천 전체 보기
             </button>
           </div>
-          <div className="mt-5 flex gap-4 overflow-x-auto pb-2">
-            {books.map((book) => (
-              <Link
-                key={book.id}
-                href={`/books/${book.slug}`}
-                className="min-w-[220px] rounded-[24px] border border-[var(--border)] bg-white/80 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-              >
-                <div className="h-28 w-full rounded-2xl bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c]" />
-                <p className="mt-4 text-sm font-semibold">{book.title}</p>
-                <p className="text-xs text-[var(--muted)]">{book.author}</p>
-                <span className="mt-4 inline-flex text-xs font-semibold text-[var(--accent)]">
-                  책 상세 보기
-                </span>
-              </Link>
-            ))}
-          </div>
+          <BookPicks
+            initialItems={bookPage.items}
+            initialCursor={bookPage.nextCursor}
+          />
         </section>
 
         <div className="mt-12 grid gap-8 lg:grid-cols-[1.4fr_0.6fr]">
@@ -153,60 +148,10 @@ export default function Home() {
                 </button>
               </div>
             </div>
-            {reviews.map((review) => (
-              <Link
-                key={review.slug}
-                href={`/reviews/${review.slug}`}
-                className="block rounded-[28px] border border-[var(--border)] bg-white/90 p-6 shadow-[var(--shadow)] transition hover:-translate-y-1 hover:shadow-lg"
-              >
-                <div className="flex flex-col gap-5 sm:flex-row">
-                  <div className="h-28 w-20 flex-shrink-0 rounded-2xl bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c]" />
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-lg font-semibold text-[var(--ink)]">
-                          {review.title}
-                        </p>
-                        <p className="text-sm text-[var(--muted)]">
-                          {review.author}
-                        </p>
-                      </div>
-                      <span className="rounded-full bg-[var(--paper-strong)] px-3 py-1 text-xs font-semibold text-[var(--muted)]">
-                        평점 {review.rating}
-                      </span>
-                    </div>
-                    <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
-                      {review.blurb}
-                    </p>
-                    <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 text-xs text-[var(--muted)]">
-                      <div className="flex items-center gap-2">
-                        {review.reactions.slice(0, 3).map((reaction) => (
-                          <span
-                            key={reaction.emoji}
-                            className="rounded-full border border-[var(--border)] px-3 py-1"
-                          >
-                            {reaction.emoji} {reaction.count}
-                          </span>
-                        ))}
-                        <span className="rounded-full border border-[var(--border)] px-3 py-1">
-                          좋아요 {review.likes}
-                        </span>
-                      </div>
-                        <span className="rounded-full border border-[var(--border)] px-3 py-1">
-                          댓글 {review.comments}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs font-semibold text-[var(--muted)]">
-                        <span>{review.reviewer}</span>
-                        <span className="h-1 w-1 rounded-full bg-[var(--muted)]" />
-                        <span>2시간 전</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+            <ReviewFeed
+              initialItems={reviewPage.items}
+              initialCursor={reviewPage.nextCursor}
+            />
           </section>
 
           <aside className="space-y-6">

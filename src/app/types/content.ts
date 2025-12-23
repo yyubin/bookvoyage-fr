@@ -11,6 +11,7 @@ export type CursorPage<T> = {
 export type ReviewComment = {
   id: string;
   user: string;
+  userId: string;
   time: string;
   content: string;
 };
@@ -21,6 +22,7 @@ export type ReviewItem = {
   title: string;
   author: string;
   reviewer: string;
+  reviewerId: string;
   blurb: string;
   rating: string;
   comments: string;
