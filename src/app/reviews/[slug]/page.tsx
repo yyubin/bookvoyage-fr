@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getCommentsByReview } from "../../services/commentService";
 import { getReviewBySlug, getReviews } from "../../services/reviewService";
 import CommentModalTrigger from "./CommentModalTrigger";
+import SpoilerToggle from "./SpoilerToggle";
 
 type ReviewPageProps = {
   params: Promise<{ slug: string }>;
@@ -53,9 +54,12 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             >
               피드로 돌아가기
             </Link>
-            <button className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]">
+            <Link
+              href="/reviews/new"
+              className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
+            >
               리뷰 쓰기
-            </button>
+            </Link>
           </div>
         </header>
 
@@ -115,14 +119,19 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
               </p>
             </div>
 
-            <div className="mt-6 space-y-4 text-base leading-relaxed text-[var(--muted)]">
-              <p>{review.review}</p>
-              {review.spoiler ? (
-                <div className="rounded-[18px] border border-dashed border-[var(--accent)] bg-white/70 p-4 text-sm text-[var(--ink)]">
-                  스포일러가 포함된 리뷰입니다. 실제 서비스에서는 펼치기
-                  토글을 제공하세요.
-                </div>
-              ) : null}
+            <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
+              {review.tags.map((tag) => (
+                <span
+                  key={`${review.slug}-${tag}`}
+                  className="rounded-full border border-[var(--border)] bg-white px-3 py-1"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-6">
+              <SpoilerToggle isSpoiler={review.spoiler} content={review.review} />
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3 text-xs font-semibold">

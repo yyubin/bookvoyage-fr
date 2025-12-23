@@ -23,6 +23,7 @@ export type ReviewItem = {
   author: string;
   reviewer: string;
   reviewerId: string;
+  tags: string[];
   blurb: string;
   rating: string;
   comments: string;
@@ -43,6 +44,7 @@ export type BookItem = {
   slug: string;
   title: string;
   author: string;
+  tags: string[];
   description: string;
   highlights: string[];
   coverTone: "warm" | "sunset" | "forest";

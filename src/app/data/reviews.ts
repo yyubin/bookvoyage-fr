@@ -8,6 +8,7 @@ export const reviews: ReviewItem[] = [
     author: "매트 헤이그",
     reviewer: "김하나",
     reviewerId: "user-001",
+    tags: ["성장", "후회", "힐링"],
     blurb:
       "선택하지 못했던 삶을 조용히 걷게 해주는 책. 마지막 장이 특히 오래 남았다.",
     rating: "4.6",
@@ -50,6 +51,7 @@ export const reviews: ReviewItem[] = [
     author: "로이스 로리",
     reviewer: "정유진",
     reviewerId: "user-004",
+    tags: ["디스토피아", "자유", "선택"],
     blurb:
       "선택지가 없는 세상에서 선택을 배우는 성장 서사. 차가운 배경이 더욱 선명했다.",
     rating: "4.4",
@@ -89,6 +91,7 @@ export const reviews: ReviewItem[] = [
     author: "손원평",
     reviewer: "이하늘",
     reviewerId: "user-005",
+    tags: ["감정", "우정", "회복"],
     blurb:
       "감정을 느끼지 못하는 소년이 세계와 연결되는 방식이 조용히 따뜻하다.",
     rating: "4.3",
@@ -128,6 +131,7 @@ export const reviews: ReviewItem[] = [
     author: "무라타 사야카",
     reviewer: "최은지",
     reviewerId: "user-006",
+    tags: ["사회성", "일상", "자기다움"],
     blurb:
       "정상성의 테두리 밖에서 자신만의 리듬을 지키는 이야기.",
     rating: "4.1",
@@ -167,6 +171,7 @@ export const reviews: ReviewItem[] = [
     author: "이민진",
     reviewer: "박지수",
     reviewerId: "user-002",
+    tags: ["가족", "역사", "서사"],
     blurb:
       "세대를 건너 이어지는 사랑과 생존의 기록. 가족 앨범처럼 촘촘하다.",
     rating: "4.9",
@@ -209,6 +214,7 @@ export const reviews: ReviewItem[] = [
     author: "미란다 카울리 헬러",
     reviewer: "조아리",
     reviewerId: "user-003",
+    tags: ["여름", "기억", "선택"],
     blurb:
       "햇살과 기억이 겹친 여름. 소나무 냄새가 나는 장면들이 오래 남았다.",
     rating: "4.2",

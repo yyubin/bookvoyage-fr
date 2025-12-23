@@ -84,6 +84,16 @@ export default function ReviewFeed({
                 <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
                   {review.blurb}
                 </p>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
+                  {review.tags.slice(0, 3).map((tag) => (
+                    <span
+                      key={`${review.slug}-${tag}`}
+                      className="rounded-full border border-[var(--border)] bg-white px-3 py-1"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
                     {review.reactions.slice(0, 3).map((reaction) => (

@@ -52,9 +52,20 @@ export default async function Home() {
               프로필
             </Link>
           </nav>
-          <button className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]">
-            리뷰 쓰기
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/auth"
+              className="rounded-full border border-[var(--border)] bg-white/70 px-4 py-2 text-sm font-semibold text-[var(--ink)] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              로그인
+            </Link>
+            <Link
+              href="/reviews/new"
+              className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
+            >
+              리뷰 쓰기
+            </Link>
+          </div>
         </header>
 
         <section className="fade-up mt-12 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">

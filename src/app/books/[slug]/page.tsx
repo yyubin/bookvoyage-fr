@@ -55,9 +55,12 @@ export default async function BookPage({ params }: BookPageProps) {
             >
               피드로 돌아가기
             </Link>
-            <button className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]">
+            <Link
+              href={`/reviews/new?book=${book?.slug}`}
+              className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
+            >
               리뷰 쓰기
-            </button>
+            </Link>
           </div>
         </header>
 
@@ -75,6 +78,16 @@ export default async function BookPage({ params }: BookPageProps) {
                 <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">
                   {book.description}
                 </p>
+                <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
+                  {book.tags.map((tag) => (
+                    <span
+                      key={`${book.slug}-${tag}`}
+                      className="rounded-full border border-[var(--border)] bg-white px-3 py-1"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
                 <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
                   {book.highlights.map((item) => (
                     <span
@@ -88,9 +101,12 @@ export default async function BookPage({ params }: BookPageProps) {
               </div>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <button className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-white">
+              <Link
+                href={`/reviews/new?book=${book?.slug}`}
+                className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-white"
+              >
                 이 책 리뷰 쓰기
-              </button>
+              </Link>
               <button className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)]">
                 책 저장
               </button>
