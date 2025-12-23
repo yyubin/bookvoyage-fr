@@ -86,12 +86,13 @@ export default function ReviewFeed({
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
                   {review.tags.slice(0, 3).map((tag) => (
-                    <span
+                    <Link
                       key={`${review.slug}-${tag}`}
-                      className="rounded-full border border-[var(--border)] bg-white px-3 py-1"
+                      href={`/search?q=${encodeURIComponent(`#${tag}`)}`}
+                      className="rounded-full border border-[var(--border)] bg-white px-3 py-1 transition hover:border-transparent hover:bg-[var(--paper-strong)]"
                     >
                       #{tag}
-                    </span>
+                    </Link>
                   ))}
                 </div>
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3">

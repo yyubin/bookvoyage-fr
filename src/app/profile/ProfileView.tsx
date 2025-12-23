@@ -250,7 +250,17 @@ export default function ProfileView({ userId }: ProfileViewProps) {
           </div>
 
           <aside className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow)]">
-            <h3 className="font-serif text-xl font-semibold">읽고 있는 책</h3>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="font-serif text-xl font-semibold">
+                읽고 있는 책
+              </h3>
+              <Link
+                href={`/profile/${userId}/reading`}
+                className="text-xs font-semibold text-[var(--accent)]"
+              >
+                모두 보기
+              </Link>
+            </div>
             <p className="mt-2 text-sm text-[var(--muted)]">
               이번 주에 집중하고 있는 책들.
             </p>
@@ -284,9 +294,12 @@ export default function ProfileView({ userId }: ProfileViewProps) {
           <div className="rounded-[32px] border border-[var(--border)] bg-white/85 p-6 shadow-[var(--shadow)]">
             <div className="flex items-center justify-between gap-4">
               <h3 className="font-serif text-2xl font-semibold">작성한 리뷰</h3>
-              <button className="text-sm font-semibold text-[var(--accent)]">
+              <Link
+                href={`/profile/${userId}/reviews`}
+                className="text-sm font-semibold text-[var(--accent)]"
+              >
                 전체 리뷰 보기
-              </button>
+              </Link>
             </div>
             <div className="mt-5 space-y-5">
               {userReviews.map((review, index) => {
@@ -348,9 +361,12 @@ export default function ProfileView({ userId }: ProfileViewProps) {
           <div className="rounded-[32px] border border-[var(--border)] bg-white/80 p-6 shadow-[var(--shadow)]">
             <div className="flex items-center justify-between gap-4">
               <h3 className="font-serif text-2xl font-semibold">북마크</h3>
-              <button className="text-sm font-semibold text-[var(--accent)]">
+              <Link
+                href={`/profile/${userId}/bookmarks`}
+                className="text-sm font-semibold text-[var(--accent)]"
+              >
                 모두 보기
-              </button>
+              </Link>
             </div>
             <div className="mt-4 space-y-3 text-sm">
               {bookmarks.map((item) => (

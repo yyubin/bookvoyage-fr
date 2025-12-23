@@ -1,6 +1,7 @@
 import Link from "next/link";
 import BookPicks from "./components/BookPicks";
 import ReviewFeed from "./components/ReviewFeed";
+import SearchBar from "./components/SearchBar";
 import { getBooks } from "./services/bookService";
 import { getReviews } from "./services/reviewService";
 
@@ -80,6 +81,9 @@ export default async function Home() {
               Bookvoyage는 당신이 머무는 문장과 분위기를 따라 리뷰와 추천을
               엮습니다. 피드를 넘기거나, 믿는 독자의 추천 트레일을 시작해 보세요.
             </p>
+            <div className="mt-6">
+              <SearchBar />
+            </div>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <button className="rounded-full bg-[var(--ink)] px-5 py-2 text-sm font-semibold text-white shadow transition hover:-translate-y-0.5">
                 오늘의 피드 보기

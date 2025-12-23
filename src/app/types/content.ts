@@ -50,6 +50,11 @@ export type BookItem = {
   coverTone: "warm" | "sunset" | "forest";
 };
 
+export type SearchResults = {
+  reviews: ReviewItem[];
+  books: BookItem[];
+};
+
 export type ProfileSummary = {
   id: string;
   name: string;

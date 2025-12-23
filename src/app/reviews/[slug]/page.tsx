@@ -121,12 +121,13 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
 
             <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
               {review.tags.map((tag) => (
-                <span
+                <Link
                   key={`${review.slug}-${tag}`}
-                  className="rounded-full border border-[var(--border)] bg-white px-3 py-1"
+                  href={`/search?q=${encodeURIComponent(`#${tag}`)}`}
+                  className="rounded-full border border-[var(--border)] bg-white px-3 py-1 transition hover:border-transparent hover:bg-[var(--paper-strong)]"
                 >
                   #{tag}
-                </span>
+                </Link>
               ))}
             </div>
 

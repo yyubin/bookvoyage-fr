@@ -80,12 +80,13 @@ export default async function BookPage({ params }: BookPageProps) {
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
                   {book.tags.map((tag) => (
-                    <span
+                    <Link
                       key={`${book.slug}-${tag}`}
-                      className="rounded-full border border-[var(--border)] bg-white px-3 py-1"
+                      href={`/search?q=${encodeURIComponent(`#${tag}`)}`}
+                      className="rounded-full border border-[var(--border)] bg-white px-3 py-1 transition hover:border-transparent hover:bg-[var(--paper-strong)]"
                     >
                       #{tag}
-                    </span>
+                    </Link>
                   ))}
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
