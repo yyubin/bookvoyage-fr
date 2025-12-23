@@ -1,0 +1,75 @@
+export type CursorQuery = {
+  cursor?: string | null;
+  limit?: number;
+};
+
+export type CursorPage<T> = {
+  items: T[];
+  nextCursor: string | null;
+};
+
+export type ReviewComment = {
+  id: string;
+  user: string;
+  time: string;
+  content: string;
+};
+
+export type ReviewItem = {
+  id: string;
+  slug: string;
+  title: string;
+  author: string;
+  reviewer: string;
+  blurb: string;
+  rating: string;
+  comments: string;
+  likes: string;
+  reactions: {
+    emoji: string;
+    count: number;
+  }[];
+  bookmarks: string;
+  spoiler: boolean;
+  review: string;
+  highlights: string[];
+  commentList: ReviewComment[];
+};
+
+export type BookItem = {
+  id: string;
+  slug: string;
+  title: string;
+  author: string;
+  description: string;
+  highlights: string[];
+  coverTone: "warm" | "sunset" | "forest";
+};
+
+export type ProfileSummary = {
+  id: string;
+  name: string;
+  bio: string;
+  tags: string[];
+  stats: ProfileStats;
+  shelves: ShelfStats;
+};
+
+export type ProfileStats = {
+  reviews: number;
+  followers: number;
+  following: number;
+};
+
+export type ShelfStats = {
+  reading: number;
+  finished: number;
+  savedReviews: number;
+  bookmarks: number;
+};
+
+export type FollowUser = {
+  id: string;
+  name: string;
+  bio: string;
+};
