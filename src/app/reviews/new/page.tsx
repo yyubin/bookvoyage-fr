@@ -8,6 +8,8 @@ export default function ReviewCreatePage() {
   const [tagInput, setTagInput] = useState("");
   const [highlights, setHighlights] = useState<string[]>([]);
   const [highlightInput, setHighlightInput] = useState("");
+  const [rating, setRating] = useState(0);
+  const [spoiler, setSpoiler] = useState(false);
 
   const addTag = () => {
     const value = tagInput.trim();
@@ -84,21 +86,66 @@ export default function ReviewCreatePage() {
               />
             </div>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--muted)]">
-                별점 입력 (UI)
+              <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3">
+                <p className="text-xs font-semibold text-[var(--muted)]">
+                  별점 입력
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  {Array.from({ length: 5 }).map((_, index) => {
+                    const value = index + 1;
+                    return (
+                      <button
+                        key={`star-${value}`}
+                        className={`text-xl transition ${
+                          rating >= value ? "text-[var(--accent)]" : "text-[#d7c7b3]"
+                        }`}
+                        onClick={() => setRating(value)}
+                        type="button"
+                        aria-label={`${value}점`}
+                      >
+                        ★
+                      </button>
+                    );
+                  })}
+                  <span className="text-xs font-semibold text-[var(--muted)]">
+                    {rating > 0 ? `${rating}.0` : "선택 없음"}
+                  </span>
+                </div>
               </div>
-              <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--muted)]">
-                스포일러 토글 (UI)
+              <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3">
+                <p className="text-xs font-semibold text-[var(--muted)]">
+                  스포일러 토글
+                </p>
+                <div className="mt-2 flex items-center gap-3">
+                  <button
+                    className={`relative h-7 w-12 rounded-full transition ${
+                      spoiler ? "bg-[var(--accent)]" : "bg-[#d7c7b3]"
+                    }`}
+                    onClick={() => setSpoiler((prev) => !prev)}
+                    type="button"
+                    aria-pressed={spoiler}
+                    aria-label="스포일러 포함"
+                  >
+                    <span
+                      className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+                        spoiler ? "left-6" : "left-1"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-xs font-semibold text-[var(--muted)]">
+                    {spoiler ? "스포일러 포함" : "스포일러 없음"}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="mt-5">
               <p className="text-sm font-semibold text-[var(--muted)]">
                 하이라이트
               </p>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex flex-wrap items-center gap-2">
                 <input
                   className="w-full rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
-                  placeholder="강조할 문장이나 핵심 포인트를 입력하세요."
+                  placeholder="강조할 문장이나 핵심 포인트를 입력하고 Enter를 누르세요."
                   value={highlightInput}
                   onChange={(event) => setHighlightInput(event.target.value)}
                   onKeyDown={(event) => {
@@ -108,13 +155,6 @@ export default function ReviewCreatePage() {
                     }
                   }}
                 />
-                <button
-                  className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-semibold text-[var(--muted)]"
-                  onClick={addHighlight}
-                  type="button"
-                >
-                  추가
-                </button>
               </div>
               <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
                 {highlights.map((item) => (
@@ -138,7 +178,7 @@ export default function ReviewCreatePage() {
             <p className="mt-3 text-sm text-[var(--muted)]">
               리뷰를 대표하는 태그를 직접 입력하세요.
             </p>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <input
                 className="w-full rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
                 placeholder="태그를 입력하고 Enter를 누르세요."
@@ -151,13 +191,6 @@ export default function ReviewCreatePage() {
                   }
                 }}
               />
-              <button
-                className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-semibold text-[var(--muted)]"
-                onClick={addTag}
-                type="button"
-              >
-                추가
-              </button>
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
               {tags.map((tag) => (
