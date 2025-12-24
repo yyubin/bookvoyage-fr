@@ -357,68 +357,71 @@ export default function ProfileView({ userId }: ProfileViewProps) {
           <div className="rounded-[32px] border border-[var(--border)] bg-white/85 p-6 shadow-[var(--shadow)]">
             <div className="flex items-center justify-between gap-4">
               <h3 className="font-serif text-2xl font-semibold">작성한 리뷰</h3>
-              <Link
-                href={`/profile/${userId}/reviews`}
-                className="text-sm font-semibold text-[var(--accent)]"
-              >
-                전체 리뷰 보기
-              </Link>
+              {userReviews.length > 0 ? (
+                <Link
+                  href={`/profile/${userId}/reviews`}
+                  className="text-sm font-semibold text-[var(--accent)]"
+                >
+                  전체 리뷰 보기
+                </Link>
+              ) : null}
             </div>
-            <div className="mt-5 space-y-5">
-              {userReviews.map((review, index) => {
-                const topReactions = review.reactions.slice(0, 2);
-                return (
-                  <Link
-                    key={review.title}
-                    href={`/reviews/${review.id}`}
-                    className={`flex flex-col gap-5 rounded-[28px] border border-[var(--border)] bg-white px-5 py-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:flex-row ${
-                      index === 0 ? "ring-1 ring-[var(--accent)]" : ""
-                    }`}
-                  >
-                    <div className="h-28 w-20 flex-shrink-0 rounded-2xl bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c]" />
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-base font-semibold text-[var(--ink)]">
-                            {review.title}
-                          </p>
-                          <p className="text-xs text-[var(--muted)]">
-                            {review.author}
-                          </p>
-                        </div>
-                        <span className="rounded-full bg-[var(--paper-strong)] px-3 py-1 text-xs font-semibold text-[var(--muted)]">
-                          평점 {review.rating}
-                        </span>
-                      </div>
-                      <p className="mt-3 text-sm text-[var(--muted)]">
-                        {review.blurb}
-                      </p>
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--muted)]">
-                        <div className="flex items-center gap-2">
-                          {topReactions.map((reaction) => (
-                            <span
-                              key={reaction.emoji}
-                              className="rounded-full border border-[var(--border)] px-3 py-1"
-                            >
-                              {reaction.emoji} {reaction.count}
-                            </span>
-                          ))}
-                          <span className="rounded-full border border-[var(--border)] px-3 py-1">
-                            좋아요 {review.likes}
+            {userReviews.length > 0 ? (
+              <div className="mt-5 space-y-5">
+                {userReviews.map((review, index) => {
+                  const topReactions = review.reactions.slice(0, 2);
+                  return (
+                    <Link
+                      key={review.id}
+                      href={`/reviews/${review.id}`}
+                      className={`flex flex-col gap-5 rounded-[28px] border border-[var(--border)] bg-white px-5 py-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:flex-row ${
+                        index === 0 ? "ring-1 ring-[var(--accent)]" : ""
+                      }`}
+                    >
+                      <div className="h-28 w-20 flex-shrink-0 rounded-2xl bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c]" />
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-base font-semibold text-[var(--ink)]">
+                              {review.title}
+                            </p>
+                            <p className="text-xs text-[var(--muted)]">
+                              {review.author}
+                            </p>
+                          </div>
+                          <span className="rounded-full bg-[var(--paper-strong)] px-3 py-1 text-xs font-semibold text-[var(--muted)]">
+                            평점 {review.rating}
                           </span>
                         </div>
-                        <span>댓글 {review.comments}</span>
+                        <p className="mt-3 text-sm text-[var(--muted)]">
+                          {review.blurb}
+                        </p>
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--muted)]">
+                          <div className="flex items-center gap-2">
+                            {topReactions.map((reaction) => (
+                              <span
+                                key={reaction.emoji}
+                                className="rounded-full border border-[var(--border)] px-3 py-1"
+                              >
+                                {reaction.emoji} {reaction.count}
+                              </span>
+                            ))}
+                            <span className="rounded-full border border-[var(--border)] px-3 py-1">
+                              좋아요 {review.likes}
+                            </span>
+                          </div>
+                          <span>댓글 {review.comments}</span>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-            {userReviews.length === 0 ? (
-              <div className="mt-6 rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-4 text-sm text-[var(--muted)]">
-                아직 작성한 리뷰가 없어요.
+                    </Link>
+                  );
+                })}
               </div>
-            ) : null}
+            ) : (
+              <div className="mt-6 rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-4 text-sm text-[var(--muted)]">
+                작성한 리뷰가 없습니다.
+              </div>
+            )}
           </div>
 
           {isOwner ? (
