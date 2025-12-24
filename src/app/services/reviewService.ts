@@ -26,15 +26,15 @@ export async function getReviews(
   });
 }
 
-export async function getReviewBySlug(
-  slug: string,
+export async function getReviewById(
+  reviewId: number,
 ): Promise<ReviewItem | null> {
   const apiResult = await fetchReviewsFromApi({ cursor: null, limit: 100 });
-  const fallback = reviews.find((item) => item.slug === slug) ?? null;
+  const fallback = reviews.find((item) => item.id === reviewId) ?? null;
 
   if (!apiResult) {
     return fallback;
   }
 
-  return apiResult.items.find((item) => item.slug === slug) ?? fallback;
+  return apiResult.items.find((item) => item.id === reviewId) ?? fallback;
 }

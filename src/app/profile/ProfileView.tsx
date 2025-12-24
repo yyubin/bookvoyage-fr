@@ -6,21 +6,19 @@ import LogoMark from "../components/LogoMark";
 import { useEffect, useMemo, useState } from "react";
 import { reviews } from "../data/reviews";
 import {
+  fetchLatestReadingBooks,
+  fetchMyBookmarkedReviews,
   getFollowers,
   getFollowing,
   getProfileSummary,
 } from "../services/profileService";
 import type {
+  BookmarkedReviewItem,
   CursorPage,
   FollowUser,
+  ReadingBookItem,
   ProfileSummary,
 } from "../types/content";
-
-const bookmarks = [
-  { title: "파친코", author: "이민진", by: "박지수" },
-  { title: "페이퍼 팰리스", author: "미란다 카울리 헬러", by: "조아리" },
-  { title: "기억 전달자", author: "로이스 로리", by: "정유진" },
-];
 
 const profileStats = [
   { label: "리뷰", key: "reviews" },
@@ -48,6 +46,10 @@ export default function ProfileView({ userId }: ProfileViewProps) {
   const [profileSummary, setProfileSummary] = useState<ProfileSummary | null>(
     null,
   );
+  const [readingBooks, setReadingBooks] = useState<ReadingBookItem[]>([]);
+  const [bookmarkedReviews, setBookmarkedReviews] = useState<
+    BookmarkedReviewItem[]
+  >([]);
   const [followersPage, setFollowersPage] =
     useState<CursorPage<FollowUser> | null>(null);
   const [followingPage, setFollowingPage] =
@@ -64,6 +66,37 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     void loadProfile();
   }, [userId]);
 
+  useEffect(() => {
+    const loadReadingBooks = async () => {
+      try {
+        const items = await fetchLatestReadingBooks(userId, 3);
+        setReadingBooks(items);
+      } catch {
+        setReadingBooks([]);
+      }
+    };
+
+    void loadReadingBooks();
+  }, [userId]);
+
+  useEffect(() => {
+    if (!isOwner) {
+      setBookmarkedReviews([]);
+      return;
+    }
+
+    const loadBookmarks = async () => {
+      try {
+        const items = await fetchMyBookmarkedReviews(3);
+        setBookmarkedReviews(items);
+      } catch {
+        setBookmarkedReviews([]);
+      }
+    };
+
+    void loadBookmarks();
+  }, [isOwner]);
+
   const formatCount = (value?: number) =>
     value === undefined ? "-" : value.toLocaleString("ko-KR");
 
@@ -77,9 +110,14 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     return [];
   }, [followersPage, followingPage, modalOpen]);
 
-  const userReviews = useMemo(
-    () => reviews.filter((review) => review.reviewerId === userId),
+  const localReviewerId = useMemo(
+    () => `user-${userId.padStart(3, "0")}`,
     [userId],
+  );
+
+  const userReviews = useMemo(
+    () => reviews.filter((review) => review.reviewerId === localReviewerId),
+    [localReviewerId],
   );
 
   const loadFollowers = async (cursor?: string | null) => {
@@ -182,10 +220,28 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                     취향 태그 · {profileSummary?.tags?.[0] ?? "기록 중"}
                   </span>
                 </div>
-                <p className="mt-3 text-sm text-[var(--muted)]">
-                  {profileSummary?.bio ??
-                    "리뷰어 소개를 불러오는 중입니다."}
-                </p>
+                <div className="mt-3 text-sm text-[var(--muted)]">
+                  <p>
+                    {profileSummary?.bio ??
+                      "리뷰어 소개를 불러오는 중입니다."}
+                  </p>
+                  {isOwner ? (
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold">
+                      <button
+                        type="button"
+                        className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[var(--muted)] transition hover:border-transparent hover:bg-[var(--paper-strong)]"
+                      >
+                        태그 수정
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[var(--muted)] transition hover:border-transparent hover:bg-[var(--paper-strong)]"
+                      >
+                        소개 수정
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
                 <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
                   {profileStats.map((item) => {
                     const isFollower = item.label === "팔로워";
@@ -272,27 +328,27 @@ export default function ProfileView({ userId }: ProfileViewProps) {
               이번 주에 집중하고 있는 책들.
             </p>
             <div className="mt-4 space-y-3 text-sm">
-              <Link
-                href="/books/midnight-library"
-                className="block rounded-2xl border border-[var(--border)] bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <p className="font-semibold text-[var(--ink)]">밤의 도서관</p>
-                <p className="text-xs text-[var(--muted)]">매트 헤이그</p>
-              </Link>
-              <Link
-                href="/books/farewell"
-                className="block rounded-2xl border border-[var(--border)] bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <p className="font-semibold text-[var(--ink)]">작별인사</p>
-                <p className="text-xs text-[var(--muted)]">김영하</p>
-              </Link>
-              <Link
-                href="/books/comfort-store"
-                className="block rounded-2xl border border-[var(--border)] bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <p className="font-semibold text-[var(--ink)]">불편한 편의점</p>
-                <p className="text-xs text-[var(--muted)]">김호연</p>
-              </Link>
+              {readingBooks.map((book) => (
+                <div
+                  key={book.bookId}
+                  className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3"
+                >
+                  <p className="font-semibold text-[var(--ink)]">
+                    {book.title}
+                  </p>
+                  <p className="text-xs text-[var(--muted)]">
+                    {book.authors.join(", ")}
+                  </p>
+                  <p className="mt-2 text-xs text-[var(--muted)]">
+                    진행률 {book.progressPercentage}%
+                  </p>
+                </div>
+              ))}
+              {readingBooks.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-3 text-xs text-[var(--muted)]">
+                  읽고 있는 책이 없습니다.
+                </div>
+              ) : null}
             </div>
           </aside>
         </section>
@@ -314,7 +370,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                 return (
                   <Link
                     key={review.title}
-                    href={`/reviews/${review.slug}`}
+                    href={`/reviews/${review.id}`}
                     className={`flex flex-col gap-5 rounded-[28px] border border-[var(--border)] bg-white px-5 py-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:flex-row ${
                       index === 0 ? "ring-1 ring-[var(--accent)]" : ""
                     }`}
@@ -365,30 +421,39 @@ export default function ProfileView({ userId }: ProfileViewProps) {
             ) : null}
           </div>
 
-          <div className="rounded-[32px] border border-[var(--border)] bg-white/80 p-6 shadow-[var(--shadow)]">
-            <div className="flex items-center justify-between gap-4">
-              <h3 className="font-serif text-2xl font-semibold">북마크</h3>
-              <Link
-                href={`/profile/${userId}/bookmarks`}
-                className="text-sm font-semibold text-[var(--accent)]"
-              >
-                모두 보기
-              </Link>
-            </div>
-            <div className="mt-4 space-y-3 text-sm">
-              {bookmarks.map((item) => (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3"
+          {isOwner ? (
+            <div className="rounded-[32px] border border-[var(--border)] bg-white/80 p-6 shadow-[var(--shadow)]">
+              <div className="flex items-center justify-between gap-4">
+                <h3 className="font-serif text-2xl font-semibold">북마크</h3>
+                <Link
+                  href={`/profile/${userId}/bookmarks`}
+                  className="text-sm font-semibold text-[var(--accent)]"
                 >
-                  <p className="font-semibold text-[var(--ink)]">{item.title}</p>
-                  <p className="text-xs text-[var(--muted)]">
-                    {item.author} · {item.by}
-                  </p>
-                </div>
-              ))}
+                  모두 보기
+                </Link>
+              </div>
+              <div className="mt-4 space-y-3 text-sm">
+                {bookmarkedReviews.map((item) => (
+                  <div
+                    key={item.reviewId}
+                    className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3"
+                  >
+                    <p className="font-semibold text-[var(--ink)]">
+                      {item.title}
+                    </p>
+                    <p className="text-xs text-[var(--muted)]">
+                      {item.reviewerNickname} · 평점 {item.rating}
+                    </p>
+                  </div>
+                ))}
+                {bookmarkedReviews.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-3 text-xs text-[var(--muted)]">
+                    북마크한 리뷰가 없습니다.
+                  </div>
+                ) : null}
+              </div>
             </div>
-          </div>
+          ) : null}
         </section>
 
         {modalOpen ? (

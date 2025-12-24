@@ -2,9 +2,11 @@ import type {
   CursorPage,
   CursorQuery,
   FollowUser,
+  BookmarkedReviewItem,
   ProfileSummary,
   ProfileStats,
   ProfileReviewItem,
+  ReadingBookItem,
   ShelfStats,
 } from "../types/content";
 import { apiFetchJson } from "./apiClient";
@@ -12,6 +14,8 @@ import { apiFetchJson } from "./apiClient";
 type ProfileResponse = ProfileSummary;
 type FollowResponse = CursorPage<FollowUser>;
 type ReviewResponse = CursorPage<ProfileReviewItem>;
+type ReadingBooksResponse = ReadingBookItem[];
+type BookmarkedReviewsResponse = BookmarkedReviewItem[];
 
 const buildCursorParams = (query: CursorQuery) => {
   const params = new URLSearchParams();
@@ -55,6 +59,23 @@ export async function fetchUserReviews(
   const params = buildCursorParams(query);
   return apiFetchJson<ReviewResponse>(
     `/api/profile/${userId}/reviews?${params.toString()}`,
+  );
+}
+
+export async function fetchLatestReadingBooks(
+  userId: string,
+  size = 3,
+): Promise<ReadingBooksResponse> {
+  return apiFetchJson<ReadingBooksResponse>(
+    `/api/profile/${userId}/reading-books?size=${size}`,
+  );
+}
+
+export async function fetchMyBookmarkedReviews(
+  size = 3,
+): Promise<BookmarkedReviewsResponse> {
+  return apiFetchJson<BookmarkedReviewsResponse>(
+    `/api/profile/me/bookmarks?size=${size}`,
   );
 }
 

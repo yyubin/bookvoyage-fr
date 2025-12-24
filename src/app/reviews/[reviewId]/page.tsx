@@ -4,22 +4,24 @@ import AuthReviewButton from "../../components/AuthReviewButton";
 import LogoMark from "../../components/LogoMark";
 import { notFound } from "next/navigation";
 import { getCommentsByReview } from "../../services/commentService";
-import { getReviewBySlug, getReviews } from "../../services/reviewService";
+import { getReviewById, getReviews } from "../../services/reviewService";
 import CommentModalTrigger from "./CommentModalTrigger";
 import SpoilerToggle from "./SpoilerToggle";
 
 type ReviewPageProps = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ reviewId: string }>;
 };
 
 export async function generateStaticParams() {
   const reviewPage = await getReviews({ cursor: null, limit: 200 });
-  return reviewPage.items.map((review) => ({ slug: review.slug }));
+  return reviewPage.items.map((review) => ({
+    reviewId: review.id.toString(),
+  }));
 }
 
 export default async function ReviewPage({ params }: ReviewPageProps) {
-  const { slug } = await params;
-  const review = await getReviewBySlug(slug);
+  const { reviewId } = await params;
+  const review = await getReviewById(Number(reviewId));
 
   if (!review) {
     notFound();
@@ -119,7 +121,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
               {review.tags.map((tag) => (
                 <Link
-                  key={`${review.slug}-${tag}`}
+                  key={`${review.id}-${tag}`}
                   href={`/search?q=${encodeURIComponent(`#${tag}`)}`}
                   className="rounded-full border border-[var(--border)] bg-white px-3 py-1 transition hover:border-transparent hover:bg-[var(--paper-strong)]"
                 >
@@ -166,12 +168,12 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {allReviews
-                  .filter((item) => item.slug !== review.slug)
+                  .filter((item) => item.id !== review.id)
                   .slice(0, 4)
                   .map((item) => (
                     <Link
-                      key={item.slug}
-                      href={`/reviews/${item.slug}`}
+                      key={item.id}
+                      href={`/reviews/${item.id}`}
                       className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm transition hover:-translate-y-0.5 hover:shadow-md"
                     >
                       <p className="font-semibold text-[var(--ink)]">

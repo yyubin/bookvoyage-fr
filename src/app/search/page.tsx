@@ -65,8 +65,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <div className="mt-5 space-y-4">
               {results.reviews.map((review) => (
                 <Link
-                  key={review.slug}
-                  href={`/reviews/${review.slug}`}
+                  key={review.id}
+                  href={`/reviews/${review.id}`}
                   className="block rounded-2xl border border-[var(--border)] bg-white px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-4">

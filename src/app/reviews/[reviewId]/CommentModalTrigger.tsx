@@ -6,7 +6,7 @@ import { getCommentsByReview } from "../../services/commentService";
 import type { ReviewComment } from "../../types/content";
 
 type CommentModalTriggerProps = {
-  reviewId: string;
+  reviewId: number;
   commentsCount: string;
   initialComments: ReviewComment[];
   initialCursor: string | null;

@@ -9,14 +9,14 @@ import { paginateWithCursor } from "./pagination";
 type CommentApiResponse = CursorPage<ReviewComment> | null;
 
 async function fetchCommentsFromApi(
-  _reviewId: string,
+  _reviewId: number,
   _query: CursorQuery,
 ): Promise<CommentApiResponse> {
   return null;
 }
 
 export async function getCommentsByReview(
-  reviewId: string,
+  reviewId: number,
   query: CursorQuery,
 ): Promise<CursorPage<ReviewComment>> {
   const apiResult = await fetchCommentsFromApi(reviewId, query);

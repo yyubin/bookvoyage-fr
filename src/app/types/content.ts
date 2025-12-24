@@ -17,7 +17,7 @@ export type ReviewComment = {
 };
 
 export type ReviewItem = {
-  id: string;
+  id: number;
   slug: string;
   title: string;
   author: string;
@@ -93,4 +93,25 @@ export type ProfileReviewItem = {
   summary: string;
   createdAt: string;
   viewCount: string;
+};
+
+export type ReadingBookItem = {
+  bookId: number;
+  title: string;
+  authors: string[];
+  coverUrl: string;
+  progressPercentage: number;
+  updatedAt: string;
+};
+
+export type BookmarkedReviewItem = {
+  reviewId: number;
+  bookId: number;
+  title: string;
+  authors: string[];
+  coverUrl: string;
+  rating: number;
+  content: string;
+  bookmarkedAt: string;
+  reviewerNickname: string;
 };

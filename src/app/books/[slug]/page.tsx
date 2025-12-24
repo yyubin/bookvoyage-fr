@@ -145,8 +145,8 @@ export default async function BookPage({ params }: BookPageProps) {
             <div className="mt-5 space-y-4">
               {relatedReviews.map((review) => (
                 <Link
-                  key={review.slug}
-                  href={`/reviews/${review.slug}`}
+                  key={review.id}
+                  href={`/reviews/${review.id}`}
                   className="block rounded-2xl border border-[var(--border)] bg-white px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -185,8 +185,8 @@ export default async function BookPage({ params }: BookPageProps) {
               <div className="mt-4 space-y-3">
                 {fallbackReviews.map((review) => (
                   <Link
-                    key={review.slug}
-                    href={`/reviews/${review.slug}`}
+                    key={review.id}
+                    href={`/reviews/${review.id}`}
                     className="block rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm"
                   >
                     <p className="font-semibold text-[var(--ink)]">

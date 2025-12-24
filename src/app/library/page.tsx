@@ -121,8 +121,8 @@ export default async function LibraryPage() {
               <div className="mt-4 space-y-3 text-sm">
                 {myReviews.slice(0, 3).map((review) => (
                   <Link
-                    key={review.slug}
-                    href={`/reviews/${review.slug}`}
+                    key={review.id}
+                    href={`/reviews/${review.id}`}
                     className="block rounded-2xl border border-[var(--border)] bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <p className="font-semibold text-[var(--ink)]">
@@ -159,8 +159,8 @@ export default async function LibraryPage() {
               <div className="mt-4 space-y-3 text-sm">
                 {bookmarkedReviews.map((review) => (
                   <Link
-                    key={review.slug}
-                    href={`/reviews/${review.slug}`}
+                    key={review.id}
+                    href={`/reviews/${review.id}`}
                     className="block rounded-2xl border border-[var(--border)] bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <p className="font-semibold text-[var(--ink)]">

@@ -5,18 +5,18 @@ import { notFound } from "next/navigation";
 import { getProfileSummary } from "../../../services/profileService";
 
 const bookmarks = [
-  { title: "파친코", author: "이민진", by: "박지수", slug: "pachinko" },
+  { reviewId: 1, title: "파친코", author: "이민진", by: "박지수" },
   {
+    reviewId: 2,
     title: "페이퍼 팰리스",
     author: "미란다 카울리 헬러",
     by: "조아리",
-    slug: "paper-palace",
   },
   {
+    reviewId: 3,
     title: "기억 전달자",
     author: "로이스 로리",
     by: "정유진",
-    slug: "the-giver",
   },
 ];
 
@@ -76,8 +76,8 @@ export default async function ProfileBookmarksPage({
           <div className="mt-5 space-y-4">
             {bookmarks.map((item) => (
               <Link
-                key={item.slug}
-                href={`/reviews/${item.slug}`}
+                key={item.reviewId}
+                href={`/reviews/${item.reviewId}`}
                 className="block rounded-2xl border border-[var(--border)] bg-white px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-4">

@@ -68,8 +68,8 @@ export default async function ProfileReviewsPage({
           <div className="mt-5 space-y-5">
             {reviews.map((review, index) => (
               <Link
-                key={review.slug}
-                href={`/reviews/${review.slug}`}
+                key={review.id}
+                href={`/reviews/${review.id}`}
                 className={`flex flex-col gap-5 rounded-[28px] border border-[var(--border)] bg-white px-5 py-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:flex-row ${
                   index === 0 ? "ring-1 ring-[var(--accent)]" : ""
                 }`}

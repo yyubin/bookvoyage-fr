@@ -2,7 +2,7 @@ import type { ReviewComment, ReviewItem } from "../types/content";
 
 export const reviews: ReviewItem[] = [
   {
-    id: "review-001",
+    id: 1,
     slug: "midnight-library",
     title: "미드나잇 라이브러리",
     author: "매트 헤이그",
@@ -45,7 +45,7 @@ export const reviews: ReviewItem[] = [
     ],
   },
   {
-    id: "review-002",
+    id: 2,
     slug: "the-giver",
     title: "기억 전달자",
     author: "로이스 로리",
@@ -85,7 +85,7 @@ export const reviews: ReviewItem[] = [
     ],
   },
   {
-    id: "review-003",
+    id: 3,
     slug: "almond",
     title: "아몬드",
     author: "손원평",
@@ -125,7 +125,7 @@ export const reviews: ReviewItem[] = [
     ],
   },
   {
-    id: "review-004",
+    id: 4,
     slug: "convenience-store-woman",
     title: "편의점 인간",
     author: "무라타 사야카",
@@ -165,7 +165,7 @@ export const reviews: ReviewItem[] = [
     ],
   },
   {
-    id: "review-005",
+    id: 5,
     slug: "pachinko",
     title: "파친코",
     author: "이민진",
@@ -208,7 +208,7 @@ export const reviews: ReviewItem[] = [
     ],
   },
   {
-    id: "review-006",
+    id: 6,
     slug: "paper-palace",
     title: "페이퍼 팰리스",
     author: "미란다 카울리 헬러",

@@ -61,8 +61,8 @@ export default function ReviewFeed({
       <div className="space-y-6">
         {items.map((review) => (
           <Link
-            key={review.slug}
-            href={`/reviews/${review.slug}`}
+            key={review.id}
+            href={`/reviews/${review.id}`}
             className="block rounded-[28px] border border-[var(--border)] bg-white/90 p-6 shadow-[var(--shadow)] transition hover:-translate-y-1 hover:shadow-lg"
           >
             <div className="flex flex-col gap-5 sm:flex-row">
@@ -87,7 +87,7 @@ export default function ReviewFeed({
                 <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
                   {review.tags.slice(0, 3).map((tag) => (
                     <Link
-                      key={`${review.slug}-${tag}`}
+                      key={`${review.id}-${tag}`}
                       href={`/search?q=${encodeURIComponent(`#${tag}`)}`}
                       className="rounded-full border border-[var(--border)] bg-white px-3 py-1 transition hover:border-transparent hover:bg-[var(--paper-strong)]"
                     >
