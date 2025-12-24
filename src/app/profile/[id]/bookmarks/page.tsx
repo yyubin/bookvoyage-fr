@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AuthButtons from "../../../components/AuthButtons";
 import { notFound } from "next/navigation";
 import { getProfileSummary } from "../../../services/profileService";
 
@@ -62,6 +63,7 @@ export default async function ProfileBookmarksPage({
             >
               피드로 이동
             </Link>
+            <AuthButtons />
           </div>
         </header>
 

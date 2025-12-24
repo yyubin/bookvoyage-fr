@@ -1,15 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import AuthButtons from "../../components/AuthButtons";
+import { useAuth } from "../../components/AuthProvider";
 
 export default function ReviewCreatePage() {
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [highlights, setHighlights] = useState<string[]>([]);
   const [highlightInput, setHighlightInput] = useState("");
   const [rating, setRating] = useState(0);
   const [spoiler, setSpoiler] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace("/auth?redirect=/reviews/new");
+    }
+  }, [isLoading, router, user]);
+
+  if (isLoading || !user) {
+    return (
+      <div className="paper-texture min-h-screen">
+        <div className="mx-auto flex min-h-screen max-w-4xl items-center justify-center px-6 pb-16 pt-8 sm:px-8">
+          <div className="rounded-[28px] border border-[var(--border)] bg-white/80 px-6 py-4 text-sm text-[var(--muted)] shadow-[var(--shadow)]">
+            로그인 확인 중입니다.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const addTag = () => {
     const value = tagInput.trim();
@@ -48,12 +71,15 @@ export default function ReviewCreatePage() {
               </h1>
             </div>
           </div>
-          <Link
-            href="/"
-            className="rounded-full border border-[var(--border)] bg-white/70 px-4 py-2 text-sm font-semibold text-[var(--muted)] transition hover:-translate-y-0.5 hover:shadow-md"
-          >
-            피드로 돌아가기
-          </Link>
+          <div className="flex items-center gap-2 text-sm font-medium text-[var(--muted)]">
+            <Link
+              href="/"
+              className="rounded-full border border-[var(--border)] bg-white/70 px-4 py-2 text-sm font-semibold text-[var(--muted)] transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              피드로 돌아가기
+            </Link>
+            <AuthButtons />
+          </div>
         </header>
 
         <main className="mt-10 space-y-6">

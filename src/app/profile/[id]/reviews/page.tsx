@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AuthButtons from "../../../components/AuthButtons";
 import { notFound } from "next/navigation";
 import { getProfileSummary } from "../../../services/profileService";
 import { getReviews } from "../../../services/reviewService";
@@ -54,6 +55,7 @@ export default async function ProfileReviewsPage({
             >
               피드로 이동
             </Link>
+            <AuthButtons />
           </div>
         </header>
 

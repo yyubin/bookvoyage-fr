@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import AuthButtons from "../components/AuthButtons";
 import { useEffect, useMemo, useState } from "react";
 import { reviews } from "../data/reviews";
 import {
@@ -143,6 +144,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
             >
               피드로 돌아가기
             </Link>
+            <AuthButtons />
             {isOwner ? (
               <button className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]">
                 프로필 편집

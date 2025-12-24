@@ -1,4 +1,6 @@
 import Link from "next/link";
+import AuthButtons from "../../components/AuthButtons";
+import AuthReviewButton from "../../components/AuthReviewButton";
 import { notFound } from "next/navigation";
 import { getCommentsByReview } from "../../services/commentService";
 import { getReviewBySlug, getReviews } from "../../services/reviewService";
@@ -54,12 +56,8 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             >
               피드로 돌아가기
             </Link>
-            <Link
-              href="/reviews/new"
-              className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
-            >
-              리뷰 쓰기
-            </Link>
+            <AuthButtons />
+            <AuthReviewButton href="/reviews/new" />
           </div>
         </header>
 

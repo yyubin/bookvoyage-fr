@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AuthButtons from "../../components/AuthButtons";
 import { getBooks } from "../../services/bookService";
 import type { BookItem } from "../../types/content";
 
@@ -61,6 +62,7 @@ export default async function BookRecommendationsPage() {
             >
               검색하기
             </Link>
+            <AuthButtons />
           </div>
         </header>
 

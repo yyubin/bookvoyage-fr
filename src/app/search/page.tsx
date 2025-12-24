@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AuthButtons from "../components/AuthButtons";
 import { searchContent } from "../services/searchService";
 
 type SearchPageProps = {
@@ -26,12 +27,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               <h1 className="font-serif text-2xl font-semibold">검색</h1>
             </div>
           </div>
-          <Link
-            href="/"
-            className="rounded-full border border-[var(--border)] bg-white/70 px-4 py-2 text-sm font-semibold text-[var(--muted)] transition hover:-translate-y-0.5 hover:shadow-md"
-          >
-            홈으로 돌아가기
-          </Link>
+          <div className="flex items-center gap-2 text-sm font-medium text-[var(--muted)]">
+            <Link
+              href="/"
+              className="rounded-full border border-[var(--border)] bg-white/70 px-4 py-2 text-sm font-semibold text-[var(--muted)] transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              홈으로 돌아가기
+            </Link>
+            <AuthButtons />
+          </div>
         </header>
 
         <section className="mt-10 rounded-[32px] border border-white/70 bg-white/80 p-8 shadow-[var(--shadow)]">

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import BookPicks from "./components/BookPicks";
+import AuthButtons from "./components/AuthButtons";
+import AuthReviewButton from "./components/AuthReviewButton";
 import ReviewFeed from "./components/ReviewFeed";
 import SearchBar from "./components/SearchBar";
 import { getBooks } from "./services/bookService";
@@ -54,18 +56,8 @@ export default async function Home() {
             </Link>
           </nav>
           <div className="flex items-center gap-2">
-            <Link
-              href="/auth"
-              className="rounded-full border border-[var(--border)] bg-white/70 px-4 py-2 text-sm font-semibold text-[var(--ink)] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              로그인
-            </Link>
-            <Link
-              href="/reviews/new"
-              className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
-            >
-              리뷰 쓰기
-            </Link>
+            <AuthButtons />
+            <AuthReviewButton href="/reviews/new" />
           </div>
         </header>
 

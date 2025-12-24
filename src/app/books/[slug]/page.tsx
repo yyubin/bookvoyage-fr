@@ -1,4 +1,6 @@
 import Link from "next/link";
+import AuthButtons from "../../components/AuthButtons";
+import AuthReviewButton from "../../components/AuthReviewButton";
 import { notFound } from "next/navigation";
 import { getBooks } from "../../services/bookService";
 import { getReviews } from "../../services/reviewService";
@@ -55,12 +57,11 @@ export default async function BookPage({ params }: BookPageProps) {
             >
               피드로 돌아가기
             </Link>
-            <Link
+            <AuthButtons />
+            <AuthReviewButton
               href={`/reviews/new?book=${book?.slug}`}
               className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
-            >
-              리뷰 쓰기
-            </Link>
+            />
           </div>
         </header>
 
@@ -102,12 +103,11 @@ export default async function BookPage({ params }: BookPageProps) {
               </div>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link
+              <AuthReviewButton
                 href={`/reviews/new?book=${book?.slug}`}
+                label="이 책 리뷰 쓰기"
                 className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-white"
-              >
-                이 책 리뷰 쓰기
-              </Link>
+              />
               <button className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)]">
                 책 저장
               </button>
