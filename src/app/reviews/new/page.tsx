@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthButtons from "../../components/AuthButtons";
 import { useAuth } from "../../components/AuthProvider";
+import LogoMark from "../../components/LogoMark";
 
 export default function ReviewCreatePage() {
   const router = useRouter();
@@ -59,9 +60,7 @@ export default function ReviewCreatePage() {
       <div className="mx-auto max-w-4xl px-6 pb-16 pt-8 sm:px-8">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--accent)] text-lg font-semibold text-white shadow-md">
-              BV
-            </div>
+            <LogoMark />
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">
                 Bookvoyage

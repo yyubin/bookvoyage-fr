@@ -33,5 +33,14 @@ export async function getServerUser(): Promise<ServerAuthUser | null> {
     return null;
   }
 
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    const preview = (await response.text()).slice(0, 200);
+    console.error(
+      `[auth] /api/users/me non-JSON response: ${contentType} :: ${preview}`,
+    );
+    return null;
+  }
+
   return (await response.json()) as ServerAuthUser;
 }

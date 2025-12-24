@@ -20,6 +20,14 @@ const bookSerif = Noto_Serif_KR({
 export const metadata: Metadata = {
   title: "Bookvoyage",
   description: "책 리뷰와 추천을 공유하는 커뮤니티.",
+  icons: {
+    icon: [
+      { url: "/bookvoyage_orange_v1.svg", type: "image/svg+xml" },
+      { url: "/logo_v1.png", type: "image/png" },
+    ],
+    shortcut: "/logo_v1.png",
+    apple: "/logo_v1.png",
+  },
 };
 
 export default async function RootLayout({

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AuthButtons from "../../../components/AuthButtons";
+import LogoMark from "../../../components/LogoMark";
 import { notFound } from "next/navigation";
 import { getProfileSummary } from "../../../services/profileService";
 
@@ -45,9 +46,7 @@ export default async function ProfileReadingPage({
       <div className="mx-auto max-w-5xl px-6 pb-16 pt-8 sm:px-8">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--accent)] text-lg font-semibold text-white shadow-md">
-              BV
-            </div>
+            <LogoMark />
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">
                 Bookvoyage
