@@ -44,6 +44,15 @@ body {
   animation-delay: 0.2s;
 }
 
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
