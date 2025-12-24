@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GOOGLE_OAUTH_URL } from "../services/authService";
 
 export default function AuthPage() {
   return (
@@ -39,12 +40,15 @@ export default function AuthPage() {
               구글 계정으로 빠르게 시작할 수 있어요.
             </p>
             <div className="mt-8">
-              <button className="flex w-full items-center justify-center gap-3 rounded-full border border-[var(--border)] bg-white px-6 py-3 text-sm font-semibold text-[var(--ink)] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+              <a
+                href={GOOGLE_OAUTH_URL}
+                className="flex w-full items-center justify-center gap-3 rounded-full border border-[var(--border)] bg-white px-6 py-3 text-sm font-semibold text-[var(--ink)] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--paper-strong)] text-base">
                   G
                 </span>
                 Google로 계속하기
-              </button>
+              </a>
             </div>
             <p className="mt-4 text-xs text-[var(--muted)]">
               로그인 시 서비스 이용약관과 개인정보처리방침에 동의한 것으로

@@ -137,9 +137,12 @@ export default async function Home() {
         <section className="fade-up-delay mt-12">
           <div className="flex items-center justify-between gap-4">
             <h3 className="font-serif text-2xl font-semibold">책 추천</h3>
-            <button className="text-sm font-semibold text-[var(--accent)]">
+            <Link
+              href="/books/recommendations"
+              className="text-sm font-semibold text-[var(--accent)]"
+            >
               추천 전체 보기
-            </button>
+            </Link>
           </div>
           <BookPicks
             initialItems={bookPage.items}
