@@ -39,5 +39,13 @@ export async function apiFetchJson<T>(
     throw new Error(`API request failed: ${response.status}`);
   }
 
+  // Check if response is JSON
+  const contentType = response.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    throw new Error(
+      `Expected JSON response but got ${contentType || "unknown content type"}. This might indicate an authentication redirect.`,
+    );
+  }
+
   return (await response.json()) as T;
 }

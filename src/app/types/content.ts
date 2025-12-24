@@ -50,9 +50,46 @@ export type BookItem = {
   coverTone: "warm" | "sunset" | "forest";
 };
 
+export type BookSearchItem = {
+  title: string;
+  authors: string[];
+  isbn10: string | null;
+  isbn13: string | null;
+  coverUrl: string | null;
+  publisher: string | null;
+  publishedDate: string | null;
+  description: string | null;
+  language: string | null;
+  pageCount: number | null;
+  googleVolumeId: string | null;
+};
+
+export type BookSearchPage = {
+  items: BookSearchItem[];
+  nextStartIndex: number | null;
+  totalItems: number;
+};
+
+export type ReviewSearchItem = {
+  reviewId: number;
+  bookId: number;
+  userId: number;
+  summary: string;
+  highlights: string[];
+  keywords: string[];
+  rating: number | null;
+  createdAt: string;
+};
+
+export type ReviewSearchPage = {
+  items: ReviewSearchItem[];
+  nextCursor: number | null;
+};
+
 export type SearchResults = {
-  reviews: ReviewItem[];
-  books: BookItem[];
+  query: string;
+  books: BookSearchPage;
+  reviews: ReviewSearchPage;
 };
 
 export type ProfileSummary = {
