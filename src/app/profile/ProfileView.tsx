@@ -40,7 +40,7 @@ type ProfileViewProps = {
 };
 
 export default function ProfileView({ userId }: ProfileViewProps) {
-  const isOwner = userId === "user-001";
+  const isOwner = userId === "1";
   const [isFollowing, setIsFollowing] = useState(false);
   const [modalOpen, setModalOpen] = useState<"followers" | "following" | null>(
     null,
@@ -142,6 +142,12 @@ export default function ProfileView({ userId }: ProfileViewProps) {
               className="rounded-full border border-[var(--border)] bg-white/70 px-4 py-2 transition hover:-translate-y-0.5 hover:shadow-md"
             >
               피드로 돌아가기
+            </Link>
+            <Link
+              href="/library"
+              className="rounded-full border border-[var(--border)] bg-white/70 px-4 py-2 transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              내 서재
             </Link>
             <AuthButtons />
             {isOwner ? (

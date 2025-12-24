@@ -1,92 +1,105 @@
-import {
-  followersByUserId,
-  followingByUserId,
-  profilesById,
-} from "../data/profile";
 import type {
   CursorPage,
   CursorQuery,
   FollowUser,
   ProfileSummary,
   ProfileStats,
+  ProfileReviewItem,
   ShelfStats,
 } from "../types/content";
-import { paginateWithCursor } from "./pagination";
+import { apiFetchJson } from "./apiClient";
 
-type ProfileResponse = ProfileSummary | null;
-type FollowResponse = CursorPage<FollowUser> | null;
+type ProfileResponse = ProfileSummary;
+type FollowResponse = CursorPage<FollowUser>;
+type ReviewResponse = CursorPage<ProfileReviewItem>;
 
-async function fetchProfileFromApi(_userId: string): Promise<ProfileResponse> {
-  return null;
+const buildCursorParams = (query: CursorQuery) => {
+  const params = new URLSearchParams();
+  if (query.cursor !== undefined && query.cursor !== null) {
+    params.set("cursor", String(query.cursor));
+  }
+  if (query.limit !== undefined) {
+    params.set("size", String(query.limit));
+  }
+  return params;
+};
+
+async function fetchProfileFromApi(userId: string): Promise<ProfileResponse> {
+  return apiFetchJson<ProfileSummary>(`/api/profile/${userId}`);
 }
 
 async function fetchFollowersFromApi(
-  _userId: string,
-  _query: CursorQuery,
+  userId: string,
+  query: CursorQuery,
 ): Promise<FollowResponse> {
-  return null;
+  const params = buildCursorParams(query);
+  return apiFetchJson<FollowResponse>(
+    `/api/profile/${userId}/followers?${params.toString()}`,
+  );
 }
 
 async function fetchFollowingFromApi(
-  _userId: string,
-  _query: CursorQuery,
+  userId: string,
+  query: CursorQuery,
 ): Promise<FollowResponse> {
-  return null;
+  const params = buildCursorParams(query);
+  return apiFetchJson<FollowResponse>(
+    `/api/profile/${userId}/following?${params.toString()}`,
+  );
+}
+
+export async function fetchUserReviews(
+  userId: string,
+  query: CursorQuery,
+): Promise<ReviewResponse> {
+  const params = buildCursorParams(query);
+  return apiFetchJson<ReviewResponse>(
+    `/api/profile/${userId}/reviews?${params.toString()}`,
+  );
 }
 
 export async function getProfileSummary(
   userId: string,
-): Promise<ProfileSummary> {
-  const apiResult = await fetchProfileFromApi(userId);
-  return apiResult ?? profilesById[userId] ?? profilesById["user-001"];
+): Promise<ProfileSummary | null> {
+  try {
+    return await fetchProfileFromApi(userId);
+  } catch {
+    return null;
+  }
 }
 
 export async function getProfileStats(
   userId: string,
-): Promise<ProfileStats> {
+): Promise<ProfileStats | null> {
   const summary = await getProfileSummary(userId);
-  return summary.stats;
+  return summary?.stats ?? null;
 }
 
-export async function getShelfStats(userId: string): Promise<ShelfStats> {
+export async function getShelfStats(
+  userId: string,
+): Promise<ShelfStats | null> {
   const summary = await getProfileSummary(userId);
-  return summary.shelves;
+  return summary?.shelves ?? null;
 }
 
 export async function getFollowers(
   userId: string,
   query: CursorQuery,
 ): Promise<CursorPage<FollowUser>> {
-  const apiResult = await fetchFollowersFromApi(userId, query);
-
-  if (apiResult && apiResult.items.length > 0) {
-    return apiResult;
+  try {
+    return await fetchFollowersFromApi(userId, query);
+  } catch {
+    return { items: [], nextCursor: null };
   }
-
-  const fallback = followersByUserId[userId] ?? followersByUserId["user-001"];
-
-  return paginateWithCursor({
-    items: fallback,
-    cursor: query.cursor,
-    limit: query.limit,
-  });
 }
 
 export async function getFollowing(
   userId: string,
   query: CursorQuery,
 ): Promise<CursorPage<FollowUser>> {
-  const apiResult = await fetchFollowingFromApi(userId, query);
-
-  if (apiResult && apiResult.items.length > 0) {
-    return apiResult;
+  try {
+    return await fetchFollowingFromApi(userId, query);
+  } catch {
+    return { items: [], nextCursor: null };
   }
-
-  const fallback = followingByUserId[userId] ?? followingByUserId["user-001"];
-
-  return paginateWithCursor({
-    items: fallback,
-    cursor: query.cursor,
-    limit: query.limit,
-  });
 }

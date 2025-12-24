@@ -1,5 +1,5 @@
 export type CursorQuery = {
-  cursor?: string | null;
+  cursor?: string | number | null;
   limit?: number;
 };
 
@@ -56,7 +56,7 @@ export type SearchResults = {
 };
 
 export type ProfileSummary = {
-  id: string;
+  id: number;
   name: string;
   bio: string;
   tags: string[];
@@ -78,7 +78,19 @@ export type ShelfStats = {
 };
 
 export type FollowUser = {
-  id: string;
+  id: number;
   name: string;
   bio: string;
+};
+
+export type ProfileReviewItem = {
+  id: number;
+  bookId: number;
+  title: string;
+  authors: string[];
+  coverUrl: string;
+  rating: number;
+  summary: string;
+  createdAt: string;
+  viewCount: string;
 };
