@@ -1,12 +1,15 @@
 import Link from "next/link";
 import AuthButtons from "../components/AuthButtons";
-import LogoMark from "../components/LogoMark";
 import AddToLibraryButton from "../components/AddToLibraryButton";
-import { searchContent } from "../services/searchService";
+import LogoMark from "../components/LogoMark";
+import SearchResultsClient from "./SearchResultsClient";
+import { searchBooks, searchReviews } from "../services/searchService";
 
 type SearchPageProps = {
   searchParams: Promise<{
     q?: string;
+    bookQ?: string;
+    reviewQ?: string;
     bookStartIndex?: string;
     bookSize?: string;
     reviewCursor?: string;
@@ -14,46 +17,39 @@ type SearchPageProps = {
   }>;
 };
 
+const toNumber = (value?: string) => {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
-  const query = (params.q ?? "").trim();
-  const parseNumber = (value?: string) => {
-    if (!value) {
-      return undefined;
-    }
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : undefined;
-  };
-  const bookStartIndex = parseNumber(params.bookStartIndex);
-  const bookSize = parseNumber(params.bookSize) ?? 6;
-  const reviewCursor = parseNumber(params.reviewCursor);
-  const reviewSize = parseNumber(params.reviewSize) ?? 6;
-  const isTagSearch = query.startsWith("#");
-  const displayQuery = query || "검색어 없음";
-  const results = query
-    ? await searchContent(query, {
-        bookStartIndex,
-        bookSize,
-        reviewCursor,
-        reviewSize,
-      })
-    : {
-        query,
-        reviews: { items: [], nextCursor: null },
-        books: { items: [], nextStartIndex: null, totalItems: 0 },
-      };
-  const baseParams = new URLSearchParams();
-  if (query) {
-    baseParams.set("q", query);
-  }
-  baseParams.set("bookSize", String(bookSize));
-  baseParams.set("reviewSize", String(reviewSize));
-  if (bookStartIndex !== undefined) {
-    baseParams.set("bookStartIndex", String(bookStartIndex));
-  }
-  if (reviewCursor !== undefined) {
-    baseParams.set("reviewCursor", String(reviewCursor));
-  }
+  const unifiedQuery = (params.q ?? "").trim();
+  const bookQuery = (params.bookQ ?? "").trim() || unifiedQuery;
+  const reviewQuery = (params.reviewQ ?? "").trim() || unifiedQuery;
+
+  const bookStartIndex = toNumber(params.bookStartIndex);
+  const bookSize = toNumber(params.bookSize) ?? 6;
+  const reviewCursor = toNumber(params.reviewCursor);
+  const reviewSize = toNumber(params.reviewSize) ?? 6;
+
+  const [bookResults, reviewResults] = await Promise.all([
+    bookQuery
+      ? searchBooks(bookQuery, {
+          startIndex: bookStartIndex,
+          size: bookSize,
+        })
+      : Promise.resolve({ items: [], nextStartIndex: null, totalItems: 0 }),
+    reviewQuery
+      ? searchReviews(reviewQuery, {
+          cursor: reviewCursor,
+          size: reviewSize,
+        })
+      : Promise.resolve({ items: [], nextCursor: null }),
+  ]);
 
   return (
     <div className="paper-texture min-h-screen">
@@ -79,148 +75,86 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </div>
         </header>
 
-        <section className="mt-10 rounded-[32px] border border-white/70 bg-white/80 p-8 shadow-[var(--shadow)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
-            통합 검색
-          </p>
-          <form
-            action="/search"
-            className="mt-4 flex flex-wrap items-center gap-3"
-          >
-            <input
-              type="search"
-              name="q"
-              defaultValue={query}
-              placeholder="검색어를 입력하세요. #태그 로 검색 가능합니다."
-              className="flex-1 rounded-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-            />
-            <button
-              type="submit"
-              className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md"
-            >
-              검색
-            </button>
-          </form>
-          <div className="mt-4 text-sm text-[var(--muted)]">
-            {isTagSearch ? "태그 검색" : "제목/내용 검색"} · {displayQuery}
+        <section className="mt-10 grid gap-6 lg:grid-cols-2">
+          <div className="rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[var(--shadow)] lg:col-span-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
+              통합 검색
+            </p>
+            <h2 className="mt-3 font-serif text-2xl font-semibold">
+              책과 리뷰를 한 번에
+            </h2>
+            <form action="/search" className="mt-5 flex flex-wrap gap-3">
+              <input
+                name="q"
+                defaultValue={unifiedQuery}
+                placeholder="책 제목, 작가, 리뷰 키워드, #태그"
+                className="w-full flex-1 rounded-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+              />
+              <button className="rounded-full bg-[var(--ink)] px-6 py-3 text-sm font-semibold text-white shadow-md">
+                통합 검색
+              </button>
+            </form>
+          </div>
+
+          <div className="rounded-[32px] border border-white/70 bg-white/80 p-6 shadow-[var(--shadow)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
+              리뷰 검색
+            </p>
+            <h2 className="mt-3 font-serif text-2xl font-semibold">
+              독자의 기록을 찾아보세요
+            </h2>
+            <form action="/search" className="mt-5 space-y-4">
+              <input
+                name="reviewQ"
+                defaultValue={reviewQuery}
+                placeholder="리뷰 키워드, 문장, 해시태그"
+                className="w-full rounded-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+              />
+              <div className="flex justify-end">
+                <button className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md">
+                  리뷰 검색
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div className="rounded-[32px] border border-white/70 bg-white/80 p-6 shadow-[var(--shadow)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
+              책 검색
+            </p>
+            <h2 className="mt-3 font-serif text-2xl font-semibold">
+              다음 책을 찾아보세요
+            </h2>
+            <form action="/search" className="mt-5 space-y-4">
+              <input
+                name="bookQ"
+                defaultValue={bookQuery}
+                placeholder="책 제목, 작가, ISBN"
+                className="w-full rounded-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+              />
+              <div className="flex justify-end">
+                <button className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md">
+                  책 검색
+                </button>
+              </div>
+            </form>
           </div>
         </section>
 
-        <section className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-[32px] border border-[var(--border)] bg-white/85 p-6 shadow-[var(--shadow)]">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="font-serif text-2xl font-semibold">리뷰 결과</h2>
-              <span className="text-xs font-semibold text-[var(--muted)]">
-                {results.reviews.items.length}건
-              </span>
-            </div>
-            <div className="mt-5 space-y-4">
-              {results.reviews.items.map((review) => (
-                <Link
-                  key={review.reviewId}
-                  href={`/reviews/${review.reviewId}`}
-                  className="block rounded-2xl border border-[var(--border)] bg-white px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-semibold text-[var(--ink)]">
-                        {review.summary}
-                      </p>
-                      <p className="text-xs text-[var(--muted)]">
-                        키워드 {review.keywords.slice(0, 3).join(", ")}
-                      </p>
-                    </div>
-                    <span className="text-xs text-[var(--muted)]">
-                      {review.rating ? `평점 ${review.rating}` : "평점 없음"}
-                    </span>
-                  </div>
-                  <p className="mt-3 text-sm text-[var(--muted)]">
-                    {review.highlights.slice(0, 2).join(" · ") ||
-                      "요약 정보를 준비 중입니다."}
-                  </p>
-                </Link>
-              ))}
-              {results.reviews.items.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-4 text-sm text-[var(--muted)]">
-                  검색된 리뷰가 없습니다.
-                </div>
-              ) : null}
-              {results.reviews.nextCursor !== null ? (
-                <Link
-                  href={`/search?${new URLSearchParams({
-                    ...Object.fromEntries(baseParams),
-                    reviewCursor: results.reviews.nextCursor.toString(),
-                  }).toString()}`}
-                  className="inline-flex rounded-full border border-[var(--border)] bg-white px-4 py-2 text-xs font-semibold text-[var(--muted)] transition hover:border-transparent hover:bg-[var(--paper-strong)]"
-                >
-                  리뷰 더 보기
-                </Link>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="rounded-[32px] border border-[var(--border)] bg-white/85 p-6 shadow-[var(--shadow)]">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="font-serif text-2xl font-semibold">책 결과</h2>
-              <span className="text-xs font-semibold text-[var(--muted)]">
-                {results.books.items.length}건
-              </span>
-            </div>
-            <div className="mt-5 space-y-4">
-              {results.books.items.map((book) => {
-                const identifier =
-                  book.googleVolumeId ?? book.isbn13 ?? book.isbn10 ?? "book";
-                const detailParams = new URLSearchParams({
-                  title: book.title,
-                  authors: book.authors.join(", "),
-                  coverUrl: book.coverUrl ?? "",
-                  publisher: book.publisher ?? "",
-                  description: book.description ?? "",
-                });
-                return (
-                  <div
-                    key={`${book.title}-${identifier}`}
-                    className="rounded-2xl border border-[var(--border)] bg-white px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-md"
-                  >
-                    <Link
-                      href={`/books/external/${identifier}?${detailParams.toString()}`}
-                      className="block"
-                    >
-                      <p className="text-sm font-semibold text-[var(--ink)]">
-                        {book.title}
-                      </p>
-                      <p className="text-xs text-[var(--muted)]">
-                        {book.authors.join(", ")}
-                      </p>
-                      <p className="mt-2 text-xs text-[var(--muted)]">
-                        {book.publisher ?? "출판사 정보 없음"}
-                      </p>
-                    </Link>
-                    <div className="mt-4">
-                      <AddToLibraryButton book={book} />
-                    </div>
-                  </div>
-                );
-              })}
-              {results.books.items.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-4 text-sm text-[var(--muted)]">
-                  검색된 책이 없습니다.
-                </div>
-              ) : null}
-              {results.books.nextStartIndex !== null ? (
-                <Link
-                  href={`/search?${new URLSearchParams({
-                    ...Object.fromEntries(baseParams),
-                    bookStartIndex: results.books.nextStartIndex.toString(),
-                  }).toString()}`}
-                  className="inline-flex rounded-full border border-[var(--border)] bg-white px-4 py-2 text-xs font-semibold text-[var(--muted)] transition hover:border-transparent hover:bg-[var(--paper-strong)]"
-                >
-                  책 더 보기
-                </Link>
-              ) : null}
-            </div>
-          </div>
-        </section>
+        <SearchResultsClient
+          initialBooks={bookResults.items}
+          initialBookNext={bookResults.nextStartIndex}
+          initialReviews={reviewResults.items}
+          initialReviewNext={reviewResults.nextCursor}
+          bookQuery={bookQuery}
+          reviewQuery={reviewQuery}
+          bookOptions={{
+            size: bookSize,
+          }}
+          reviewOptions={{
+            size: reviewSize,
+          }}
+        />
       </div>
     </div>
   );

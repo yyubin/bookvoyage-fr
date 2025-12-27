@@ -72,13 +72,17 @@ export type BookSearchPage = {
 
 export type ReviewSearchItem = {
   reviewId: number;
-  bookId: number;
-  userId: number;
+  bookId?: number;
+  userId?: number;
+  title?: string;
+  authors?: string[];
+  coverUrl?: string | null;
   summary: string;
   highlights: string[];
   keywords: string[];
   rating: number | null;
   createdAt: string;
+  authorNickname?: string;
 };
 
 export type ReviewSearchPage = {
