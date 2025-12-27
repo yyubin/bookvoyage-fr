@@ -13,6 +13,7 @@ import { apiFetch, apiFetchJson } from "../services/apiClient";
 
 type AuthUser = {
   id?: number | string;
+  userId?: number | string;
   email?: string;
   username?: string;
 };
@@ -54,6 +55,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     } finally {
       setUser(null);
       router.push("/");
+      router.refresh();
     }
   }, [router]);
 

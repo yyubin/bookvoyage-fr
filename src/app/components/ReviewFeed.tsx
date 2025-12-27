@@ -60,19 +60,25 @@ export default function ReviewFeed({
     <>
       <div className="space-y-6">
         {items.map((review) => (
-          <Link
+          <div
             key={review.id}
-            href={`/reviews/${review.id}`}
-            className="block rounded-[28px] border border-[var(--border)] bg-white/90 p-6 shadow-[var(--shadow)] transition hover:-translate-y-1 hover:shadow-lg"
+            className="rounded-[28px] border border-[var(--border)] bg-white/90 p-6 shadow-[var(--shadow)] transition hover:-translate-y-1 hover:shadow-lg"
           >
             <div className="flex flex-col gap-5 sm:flex-row">
-              <div className="h-28 w-20 flex-shrink-0 rounded-2xl bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c]" />
+              <Link
+                href={`/reviews/${review.id}`}
+                className="h-28 w-20 flex-shrink-0 rounded-2xl bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c]"
+                aria-label={`${review.title} 리뷰 상세로 이동`}
+              />
               <div className="flex-1">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-lg font-semibold text-[var(--ink)]">
+                    <Link
+                      href={`/reviews/${review.id}`}
+                      className="text-lg font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
+                    >
                       {review.title}
-                    </p>
+                    </Link>
                     <p className="text-sm text-[var(--muted)]">
                       {review.author}
                     </p>
@@ -81,9 +87,12 @@ export default function ReviewFeed({
                     평점 {review.rating}
                   </span>
                 </div>
-                <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+                <Link
+                  href={`/reviews/${review.id}`}
+                  className="mt-3 block text-sm leading-relaxed text-[var(--muted)]"
+                >
                   {review.blurb}
-                </p>
+                </Link>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
                   {review.tags.slice(0, 3).map((tag) => (
                     <Link
@@ -125,7 +134,7 @@ export default function ReviewFeed({
                 </div>
               </div>
             </div>
-          </Link>
+          </div>
         ))}
         {isLoading
           ? Array.from({ length: 2 }).map((_, index) => (

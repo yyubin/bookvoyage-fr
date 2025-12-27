@@ -20,6 +20,7 @@ import {
   uploadProfileImageToS3,
   updateMyTasteTag,
 } from "../services/userService";
+import { useAuth } from "../components/AuthProvider";
 import type {
   BookmarkedReviewItem,
   CursorPage,
@@ -47,7 +48,11 @@ type ProfileViewProps = {
 };
 
 export default function ProfileView({ userId }: ProfileViewProps) {
-  const isOwner = userId === "1";
+  const { user } = useAuth();
+  const currentUserId = user?.userId ?? user?.id;
+  const isOwner =
+    currentUserId !== undefined &&
+    String(currentUserId) === String(userId);
   const [isFollowing, setIsFollowing] = useState(false);
   const [modalOpen, setModalOpen] = useState<"followers" | "following" | null>(
     null,

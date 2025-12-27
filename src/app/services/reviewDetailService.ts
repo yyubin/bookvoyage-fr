@@ -20,5 +20,10 @@ export async function getReviewDetail(
     return { review: null, status: response.status };
   }
 
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    return { review: null, status: response.status };
+  }
+
   return { review: (await response.json()) as ReviewResponse, status: 200 };
 }

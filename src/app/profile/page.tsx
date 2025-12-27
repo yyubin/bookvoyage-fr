@@ -8,6 +8,7 @@ export default async function ProfilePage() {
     redirect("/auth?redirect=/profile");
   }
 
-  const userId = user.id ? String(user.id) : "1";
-  return <ProfileView userId={userId} />;
+  const userId = user.userId ?? user.id;
+  const resolvedUserId = userId ? String(userId) : "1";
+  return <ProfileView userId={resolvedUserId} />;
 }
