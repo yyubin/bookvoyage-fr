@@ -123,7 +123,10 @@ export type UserBookListResponse = {
 
 export type UserReviewResponse = {
   reviewId: number;
+  bookId?: number;
   title: string;
+  authors: string[];
+  coverUrl: string | null;
   rating: number;
   summary: string;
   createdAt: string;
@@ -139,6 +142,10 @@ export type BookmarkPageResponse = {
   reviews?: UserReviewResponse[];
   items?: UserReviewResponse[];
   nextCursor?: number | null;
+};
+
+export type ReviewResponse = {
+  reviewId: number;
 };
 
 export type ProfileSummary = {

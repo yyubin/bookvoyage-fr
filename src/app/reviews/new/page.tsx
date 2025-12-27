@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import AuthButtons from "../../components/AuthButtons";
 import { useAuth } from "../../components/AuthProvider";
 import LogoMark from "../../components/LogoMark";
+import { searchContent } from "../../services/searchService";
+import { createReview } from "../../services/reviewWriteService";
+import type { BookSearchItem } from "../../types/content";
 
 export default function ReviewCreatePage() {
   const router = useRouter();
@@ -16,6 +19,17 @@ export default function ReviewCreatePage() {
   const [highlightInput, setHighlightInput] = useState("");
   const [rating, setRating] = useState(0);
   const [spoiler, setSpoiler] = useState(false);
+  const [summary, setSummary] = useState("");
+  const [content, setContent] = useState("");
+  const [genre, setGenre] = useState("");
+  const [visibility, setVisibility] = useState("PUBLIC");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<BookSearchItem[]>([]);
+  const [selectedBook, setSelectedBook] = useState<BookSearchItem | null>(null);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -55,6 +69,74 @@ export default function ReviewCreatePage() {
     setHighlightInput("");
   };
 
+  const handleSearch = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    if (!query) {
+      setSearchResults([]);
+      setSearchError("검색어를 입력해주세요.");
+      return;
+    }
+    setIsSearching(true);
+    setSearchError(null);
+    try {
+      const result = await searchContent(query, { bookSize: 6, reviewSize: 0 });
+      setSearchResults(result.books.items);
+      if (result.books.items.length === 0) {
+        setSearchError("검색 결과가 없습니다.");
+      }
+    } catch {
+      setSearchError("검색에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (isSubmitting) {
+      return;
+    }
+    if (!selectedBook) {
+      setSubmitError("리뷰할 책을 선택해주세요.");
+      return;
+    }
+    if (!genre.trim()) {
+      setSubmitError("장르를 입력해주세요.");
+      return;
+    }
+    if (rating < 1) {
+      setSubmitError("평점을 선택해주세요.");
+      return;
+    }
+    if (summary.length > 200) {
+      setSubmitError("한줄 요약은 200자 이내로 입력해주세요.");
+      return;
+    }
+    if (content.length > 5000) {
+      setSubmitError("리뷰 내용은 5000자 이내로 입력해주세요.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const response = await createReview(selectedBook, {
+        rating,
+        summary,
+        content,
+        visibility,
+        genre: genre.trim(),
+        keywords: tags,
+        highlights,
+      });
+      router.push(`/reviews/${response.reviewId}`);
+    } catch {
+      setSubmitError("리뷰 등록에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="paper-texture min-h-screen">
       <div className="mx-auto max-w-4xl px-6 pb-16 pt-8 sm:px-8">
@@ -87,11 +169,77 @@ export default function ReviewCreatePage() {
               어떤 책에 대한 리뷰인가요?
             </h2>
             <p className="mt-3 text-sm text-[var(--muted)]">
-              책 제목이나 작가로 검색해 선택하세요. 현재는 UI만 제공됩니다.
+              책 제목이나 작가로 검색해 선택하세요.
             </p>
-            <div className="mt-6 rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--muted)]">
-              책 검색 입력 필드
-            </div>
+            <form className="mt-6 space-y-4" onSubmit={handleSearch}>
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="책 제목, 작가, ISBN으로 검색"
+                  className="w-full flex-1 rounded-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)] sm:w-auto"
+                />
+                <button
+                  type="submit"
+                  className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md"
+                  disabled={isSearching}
+                >
+                  {isSearching ? "검색 중" : "검색"}
+                </button>
+              </div>
+            </form>
+
+            {selectedBook ? (
+              <div className="mt-6 rounded-[24px] border border-[var(--border)] bg-white px-5 py-4">
+                <p className="text-xs font-semibold text-[var(--muted)]">
+                  선택한 책
+                </p>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--ink)]">
+                      {selectedBook.title}
+                    </p>
+                    <p className="text-xs text-[var(--muted)]">
+                      {selectedBook.authors.join(", ")}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBook(null)}
+                    className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-xs font-semibold text-[var(--muted)]"
+                  >
+                    선택 해제
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {searchError ? (
+              <p className="mt-4 text-sm text-rose-500">{searchError}</p>
+            ) : null}
+
+            {searchResults.length > 0 ? (
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {searchResults.map((book) => (
+                  <button
+                    key={`${book.title}-${book.googleVolumeId ?? book.isbn13 ?? book.isbn10 ?? "book"}`}
+                    type="button"
+                    onClick={() => setSelectedBook(book)}
+                    className="rounded-[20px] border border-[var(--border)] bg-white px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-md"
+                  >
+                    <p className="text-sm font-semibold text-[var(--ink)]">
+                      {book.title}
+                    </p>
+                    <p className="text-xs text-[var(--muted)]">
+                      {book.authors.join(", ")}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--muted)]">
+                      {book.publisher ?? "출판사 정보 없음"}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </section>
 
           <section className="rounded-[32px] border border-[var(--border)] bg-white/85 p-8 shadow-[var(--shadow)]">
@@ -101,11 +249,16 @@ export default function ReviewCreatePage() {
                 최대 2,000자
               </span>
             </div>
-            <div className="mt-4 rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--muted)]">
-              한줄 요약 입력 필드
-            </div>
+            <input
+              value={summary}
+              onChange={(event) => setSummary(event.target.value)}
+              placeholder="한 줄 요약을 입력하세요."
+              className="mt-4 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+            />
             <div className="mt-4">
               <textarea
+                value={content}
+                onChange={(event) => setContent(event.target.value)}
                 className="h-56 w-full resize-none rounded-[24px] border border-[var(--border)] bg-white/90 px-5 py-4 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
                 placeholder="책을 읽으며 느낀 감정과 생각을 적어보세요."
               />
@@ -161,6 +314,69 @@ export default function ReviewCreatePage() {
                     {spoiler ? "스포일러 포함" : "스포일러 없음"}
                   </span>
                 </div>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3">
+                <p className="text-xs font-semibold text-[var(--muted)]">
+                  장르
+                </p>
+                <select
+                  value={genre}
+                  onChange={(event) => setGenre(event.target.value)}
+                  className="mt-2 w-full rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+                >
+                  <option value="">장르 선택</option>
+                  <option value="FICTION">문학 / 소설</option>
+                  <option value="CLASSIC">고전문학</option>
+                  <option value="POETRY">시</option>
+                  <option value="ESSAY">에세이</option>
+                  <option value="FANTASY">판타지</option>
+                  <option value="SCIENCE_FICTION">SF</option>
+                  <option value="MYSTERY">미스터리</option>
+                  <option value="THRILLER">스릴러</option>
+                  <option value="HORROR">호러</option>
+                  <option value="ROMANCE">로맨스</option>
+                  <option value="HISTORICAL_FICTION">역사소설</option>
+                  <option value="PHILOSOPHY">철학</option>
+                  <option value="PSYCHOLOGY">심리학</option>
+                  <option value="SOCIOLOGY">사회학</option>
+                  <option value="POLITICS">정치</option>
+                  <option value="ECONOMICS">경제학</option>
+                  <option value="HISTORY">역사</option>
+                  <option value="SELF_HELP">자기계발</option>
+                  <option value="BUSINESS">비즈니스</option>
+                  <option value="LEADERSHIP">리더십</option>
+                  <option value="CAREER">커리어</option>
+                  <option value="FINANCE">재테크</option>
+                  <option value="SCIENCE">과학</option>
+                  <option value="TECHNOLOGY">기술 / 프로그래밍</option>
+                  <option value="MATHEMATICS">수학</option>
+                  <option value="MEDICINE">의학</option>
+                  <option value="ART">예술</option>
+                  <option value="MUSIC">음악</option>
+                  <option value="CULTURE">문화</option>
+                  <option value="TRAVEL">여행</option>
+                  <option value="COOKING">요리</option>
+                  <option value="HEALTH">건강</option>
+                  <option value="RELIGION">종교</option>
+                  <option value="EDUCATION">교육</option>
+                  <option value="CHILDREN">아동</option>
+                  <option value="POCKET">단행본 / 기타</option>
+                </select>
+              </div>
+              <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3">
+                <p className="text-xs font-semibold text-[var(--muted)]">
+                  공개 범위
+                </p>
+                <select
+                  value={visibility}
+                  onChange={(event) => setVisibility(event.target.value)}
+                  className="mt-2 w-full rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+                >
+                  <option value="PUBLIC">전체 공개</option>
+                  <option value="PRIVATE">비공개</option>
+                </select>
               </div>
             </div>
             <div className="mt-5">
@@ -237,10 +453,18 @@ export default function ReviewCreatePage() {
             <button className="rounded-full border border-[var(--border)] bg-white px-5 py-2 text-sm font-semibold text-[var(--muted)]">
               임시 저장
             </button>
-            <button className="rounded-full bg-[var(--accent)] px-6 py-2 text-sm font-semibold text-white shadow-md">
-              리뷰 게시하기
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="rounded-full bg-[var(--accent)] px-6 py-2 text-sm font-semibold text-white shadow-md disabled:opacity-60"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "게시 중" : "리뷰 게시하기"}
             </button>
           </section>
+          {submitError ? (
+            <p className="text-sm font-semibold text-rose-500">{submitError}</p>
+          ) : null}
         </main>
       </div>
     </div>

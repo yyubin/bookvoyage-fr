@@ -1,31 +1,10 @@
 import Link from "next/link";
 import AuthButtons from "../../../components/AuthButtons";
 import LogoMark from "../../../components/LogoMark";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
+import { getServerUser } from "../../../services/authServer";
+import { getUserBooksByStatus } from "../../../services/libraryService";
 import { getProfileSummary } from "../../../services/profileService";
-
-const readingList = [
-  {
-    title: "밤의 도서관",
-    author: "매트 헤이그",
-    slug: "midnight-library",
-  },
-  {
-    title: "작별인사",
-    author: "김영하",
-    slug: "farewell",
-  },
-  {
-    title: "불편한 편의점",
-    author: "김호연",
-    slug: "comfort-store",
-  },
-  {
-    title: "내일, 또 내일, 그리고 내일",
-    author: "가브리엘 제빈",
-    slug: "tomorrow-and-tomorrow",
-  },
-];
 
 type ProfileReadingPageProps = {
   params: Promise<{ id: string }>;
@@ -35,11 +14,24 @@ export default async function ProfileReadingPage({
   params,
 }: ProfileReadingPageProps) {
   const { id } = await params;
-  const profile = await getProfileSummary(id);
-
-  if (!profile) {
-    notFound();
+  const user = await getServerUser();
+  if (!user) {
+    redirect(`/auth?redirect=/profile/${id}/reading`);
   }
+  const userId = user.userId ?? user.id;
+  if (!userId) {
+    redirect(`/auth?redirect=/profile/${id}/reading`);
+  }
+  if (String(userId) !== id) {
+    redirect(`/profile/${userId}/reading`);
+  }
+
+  const [profile, readingResponse] = await Promise.all([
+    getProfileSummary(id),
+    getUserBooksByStatus("READING"),
+  ]);
+  const profileName = user.nickname ?? profile?.name ?? "프로필";
+  const readingList = readingResponse.items;
 
   return (
     <div className="paper-texture min-h-screen">
@@ -52,7 +44,7 @@ export default async function ProfileReadingPage({
                 Bookvoyage
               </p>
               <h1 className="font-serif text-2xl font-semibold">
-                {profile.name}님의 읽고 있는 책
+                {profileName}님의 읽고 있는 책
               </h1>
             </div>
           </div>
@@ -83,14 +75,19 @@ export default async function ProfileReadingPage({
           <div className="mt-5 space-y-4">
             {readingList.map((item) => (
               <Link
-                key={item.slug}
-                href={`/books/${item.slug}`}
+                key={item.userBookId}
+                href={`/library/books/${item.bookId}`}
                 className="block rounded-2xl border border-[var(--border)] bg-white px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <p className="text-sm font-semibold text-[var(--ink)]">
                   {item.title}
                 </p>
-                <p className="text-xs text-[var(--muted)]">{item.author}</p>
+                <p className="text-xs text-[var(--muted)]">
+                  {item.authors.join(", ")}
+                </p>
+                <p className="mt-2 text-xs text-[var(--muted)]">
+                  진행률 {item.progressPercentage}%
+                </p>
               </Link>
             ))}
             {readingList.length === 0 ? (

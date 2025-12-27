@@ -1,24 +1,10 @@
 import Link from "next/link";
 import AuthButtons from "../../../components/AuthButtons";
 import LogoMark from "../../../components/LogoMark";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
+import { getServerUser } from "../../../services/authServer";
 import { getProfileSummary } from "../../../services/profileService";
-
-const bookmarks = [
-  { reviewId: 1, title: "파친코", author: "이민진", by: "박지수" },
-  {
-    reviewId: 2,
-    title: "페이퍼 팰리스",
-    author: "미란다 카울리 헬러",
-    by: "조아리",
-  },
-  {
-    reviewId: 3,
-    title: "기억 전달자",
-    author: "로이스 로리",
-    by: "정유진",
-  },
-];
+import { getBookmarkedReviews } from "../../../services/libraryService";
 
 type ProfileBookmarksPageProps = {
   params: Promise<{ id: string }>;
@@ -28,10 +14,19 @@ export default async function ProfileBookmarksPage({
   params,
 }: ProfileBookmarksPageProps) {
   const { id } = await params;
+  const user = await getServerUser();
+  if (!user) {
+    redirect(`/auth?redirect=/profile/${id}/bookmarks`);
+  }
   const profile = await getProfileSummary(id);
+  const profileName = profile?.name ?? "프로필";
 
-  if (!profile) {
-    notFound();
+  let bookmarks = [];
+  try {
+    const response = await getBookmarkedReviews(20);
+    bookmarks = response.reviews ?? response.items ?? [];
+  } catch {
+    bookmarks = [];
   }
 
   return (
@@ -45,7 +40,7 @@ export default async function ProfileBookmarksPage({
                 Bookvoyage
               </p>
               <h1 className="font-serif text-2xl font-semibold">
-                {profile.name}님의 북마크
+                {profileName}님의 북마크
               </h1>
             </div>
           </div>
@@ -86,13 +81,16 @@ export default async function ProfileBookmarksPage({
                       {item.title}
                     </p>
                     <p className="text-xs text-[var(--muted)]">
-                      {item.author}
+                      {item.authors.join(", ")}
                     </p>
                   </div>
                   <span className="text-xs text-[var(--muted)]">
-                    by {item.by}
+                    평점 {item.rating}
                   </span>
                 </div>
+                <p className="mt-3 text-xs text-[var(--muted)]">
+                  {item.summary}
+                </p>
               </Link>
             ))}
             {bookmarks.length === 0 ? (
