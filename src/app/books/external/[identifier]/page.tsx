@@ -4,13 +4,13 @@ import AuthButtons from "../../../components/AuthButtons";
 
 type ExternalBookPageProps = {
   params: Promise<{ identifier: string }>;
-  searchParams?: {
+  searchParams?: Promise<{
     title?: string;
     authors?: string;
     coverUrl?: string;
     publisher?: string;
     description?: string;
-  };
+  }>;
 };
 
 export default async function ExternalBookPage({
@@ -18,11 +18,13 @@ export default async function ExternalBookPage({
   searchParams,
 }: ExternalBookPageProps) {
   const { identifier } = await params;
-  const title = searchParams?.title ?? "제목 정보 없음";
-  const authors = searchParams?.authors ?? "저자 정보 없음";
-  const coverUrl = searchParams?.coverUrl ?? "";
-  const publisher = searchParams?.publisher ?? "출판사 정보 없음";
-  const description = searchParams?.description ?? "책 소개 정보를 준비 중입니다.";
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const title = resolvedSearchParams.title ?? "제목 정보 없음";
+  const authors = resolvedSearchParams.authors ?? "저자 정보 없음";
+  const coverUrl = resolvedSearchParams.coverUrl ?? "";
+  const publisher = resolvedSearchParams.publisher ?? "출판사 정보 없음";
+  const description =
+    resolvedSearchParams.description ?? "책 소개 정보를 준비 중입니다.";
 
   return (
     <div className="paper-texture min-h-screen">

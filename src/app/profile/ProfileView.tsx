@@ -4,10 +4,10 @@ import Link from "next/link";
 import AuthButtons from "../components/AuthButtons";
 import LogoMark from "../components/LogoMark";
 import { useEffect, useMemo, useState } from "react";
-import { reviews } from "../data/reviews";
 import {
   fetchLatestReadingBooks,
   fetchMyBookmarkedReviews,
+  fetchUserReviews,
   getFollowers,
   getFollowing,
   getProfileSummary,
@@ -18,6 +18,7 @@ import type {
   FollowUser,
   ReadingBookItem,
   ProfileSummary,
+  ProfileReviewItem,
 } from "../types/content";
 
 const profileStats = [
@@ -50,6 +51,8 @@ export default function ProfileView({ userId }: ProfileViewProps) {
   const [bookmarkedReviews, setBookmarkedReviews] = useState<
     BookmarkedReviewItem[]
   >([]);
+  const [profileReviews, setProfileReviews] = useState<ProfileReviewItem[]>([]);
+  const [isReviewsLoading, setIsReviewsLoading] = useState(false);
   const [followersPage, setFollowersPage] =
     useState<CursorPage<FollowUser> | null>(null);
   const [followingPage, setFollowingPage] =
@@ -110,15 +113,21 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     return [];
   }, [followersPage, followingPage, modalOpen]);
 
-  const localReviewerId = useMemo(
-    () => `user-${userId.padStart(3, "0")}`,
-    [userId],
-  );
+  useEffect(() => {
+    const loadReviews = async () => {
+      setIsReviewsLoading(true);
+      try {
+        const page = await fetchUserReviews(userId, { cursor: null, limit: 3 });
+        setProfileReviews(page.items ?? []);
+      } catch {
+        setProfileReviews([]);
+      } finally {
+        setIsReviewsLoading(false);
+      }
+    };
 
-  const userReviews = useMemo(
-    () => reviews.filter((review) => review.reviewerId === localReviewerId),
-    [localReviewerId],
-  );
+    void loadReviews();
+  }, [userId]);
 
   const loadFollowers = async (cursor?: string | null) => {
     if (isFollowersLoading) {
@@ -357,7 +366,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
           <div className="rounded-[32px] border border-[var(--border)] bg-white/85 p-6 shadow-[var(--shadow)]">
             <div className="flex items-center justify-between gap-4">
               <h3 className="font-serif text-2xl font-semibold">작성한 리뷰</h3>
-              {userReviews.length > 0 ? (
+              {profileReviews.length > 0 ? (
                 <Link
                   href={`/profile/${userId}/reviews`}
                   className="text-sm font-semibold text-[var(--accent)]"
@@ -366,10 +375,9 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                 </Link>
               ) : null}
             </div>
-            {userReviews.length > 0 ? (
+            {profileReviews.length > 0 ? (
               <div className="mt-5 space-y-5">
-                {userReviews.map((review, index) => {
-                  const topReactions = review.reactions.slice(0, 2);
+                {profileReviews.map((review, index) => {
                   return (
                     <Link
                       key={review.id}
@@ -378,7 +386,16 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                         index === 0 ? "ring-1 ring-[var(--accent)]" : ""
                       }`}
                     >
-                      <div className="h-28 w-20 flex-shrink-0 rounded-2xl bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c]" />
+                      <div className="h-28 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c]">
+                        {review.coverUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={review.coverUrl}
+                            alt={review.title}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : null}
+                      </div>
                       <div className="flex-1">
                         <div className="flex items-start justify-between gap-4">
                           <div>
@@ -386,7 +403,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                               {review.title}
                             </p>
                             <p className="text-xs text-[var(--muted)]">
-                              {review.author}
+                              {review.authors.join(", ")}
                             </p>
                           </div>
                           <span className="rounded-full bg-[var(--paper-strong)] px-3 py-1 text-xs font-semibold text-[var(--muted)]">
@@ -394,23 +411,11 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                           </span>
                         </div>
                         <p className="mt-3 text-sm text-[var(--muted)]">
-                          {review.blurb}
+                          {review.summary}
                         </p>
                         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--muted)]">
-                          <div className="flex items-center gap-2">
-                            {topReactions.map((reaction) => (
-                              <span
-                                key={reaction.emoji}
-                                className="rounded-full border border-[var(--border)] px-3 py-1"
-                              >
-                                {reaction.emoji} {reaction.count}
-                              </span>
-                            ))}
-                            <span className="rounded-full border border-[var(--border)] px-3 py-1">
-                              좋아요 {review.likes}
-                            </span>
-                          </div>
-                          <span>댓글 {review.comments}</span>
+                          <span>조회수 {review.viewCount}</span>
+                          <span>{review.createdAt}</span>
                         </div>
                       </div>
                     </Link>
@@ -419,7 +424,9 @@ export default function ProfileView({ userId }: ProfileViewProps) {
               </div>
             ) : (
               <div className="mt-6 rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-4 text-sm text-[var(--muted)]">
-                작성한 리뷰가 없습니다.
+                {isReviewsLoading
+                  ? "리뷰를 불러오는 중입니다."
+                  : "작성한 리뷰가 없습니다."}
               </div>
             )}
           </div>

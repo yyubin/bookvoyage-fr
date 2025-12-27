@@ -1,10 +1,17 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import LogoMark from "../components/LogoMark";
 import AuthButtons from "../components/AuthButtons";
+import { getServerUser } from "../services/authServer";
 import { getBooks } from "../services/bookService";
 import { getReviews } from "../services/reviewService";
 
 export default async function LibraryPage() {
+  const user = await getServerUser();
+  if (!user) {
+    redirect("/auth?redirect=/library");
+  }
+
   const [bookPage, reviewPage] = await Promise.all([
     getBooks({ cursor: null, limit: 12 }),
     getReviews({ cursor: null, limit: 200 }),

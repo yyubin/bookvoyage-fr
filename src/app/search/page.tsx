@@ -82,14 +82,24 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
             통합 검색
           </p>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <div className="flex-1 rounded-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--muted)]">
-              {query || "검색어를 입력하세요. #태그 로 검색 가능합니다."}
-            </div>
-            <button className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md">
+          <form
+            action="/search"
+            className="mt-4 flex flex-wrap items-center gap-3"
+          >
+            <input
+              type="search"
+              name="q"
+              defaultValue={query}
+              placeholder="검색어를 입력하세요. #태그 로 검색 가능합니다."
+              className="flex-1 rounded-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            />
+            <button
+              type="submit"
+              className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-md"
+            >
               검색
             </button>
-          </div>
+          </form>
           <div className="mt-4 text-sm text-[var(--muted)]">
             {isTagSearch ? "태그 검색" : "제목/내용 검색"} · {displayQuery}
           </div>
