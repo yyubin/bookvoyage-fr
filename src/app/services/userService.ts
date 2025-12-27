@@ -1,4 +1,11 @@
 import { apiFetch } from "./apiClient";
+import { apiFetchJson } from "./apiClient";
+
+type ProfileImageUploadResponse = {
+  presignedUrl: string;
+  fileUrl: string;
+  objectKey: string;
+};
 
 export async function updateMyBio(bio: string): Promise<void> {
   const response = await apiFetch("/api/users/me/bio", {
@@ -42,4 +49,48 @@ export async function updateMyProfileImage(imageUrl: string): Promise<void> {
   if (!response.ok) {
     throw new Error(`Failed to update profile image: ${response.status}`);
   }
+}
+
+export async function requestProfileImageUploadUrl(
+  filename: string,
+): Promise<ProfileImageUploadResponse> {
+  return apiFetchJson<ProfileImageUploadResponse>(
+    "/api/users/me/profile-image/upload-url",
+    {
+      method: "POST",
+      body: JSON.stringify({ filename }),
+    },
+  );
+}
+
+export async function uploadProfileImageToS3(
+  presignedUrl: string,
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open("PUT", presignedUrl);
+    request.setRequestHeader(
+      "Content-Type",
+      file.type || "application/octet-stream",
+    );
+    request.upload.onprogress = (event) => {
+      if (!onProgress || !event.lengthComputable) {
+        return;
+      }
+      const percent = Math.round((event.loaded / event.total) * 100);
+      onProgress(percent);
+    };
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 300) {
+        onProgress?.(100);
+        resolve();
+        return;
+      }
+      reject(new Error(`Failed to upload image: ${request.status}`));
+    };
+    request.onerror = () => reject(new Error("Failed to upload image"));
+    request.send(file);
+  });
 }

@@ -16,6 +16,8 @@ import {
   updateMyBio,
   updateMyNickname,
   updateMyProfileImage,
+  requestProfileImageUploadUrl,
+  uploadProfileImageToS3,
   updateMyTasteTag,
 } from "../services/userService";
 import type {
@@ -72,11 +74,14 @@ export default function ProfileView({ userId }: ProfileViewProps) {
   const [tagInput, setTagInput] = useState("");
   const [bioInput, setBioInput] = useState("");
   const [nicknameInput, setNicknameInput] = useState("");
-  const [imageUrlInput, setImageUrlInput] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSavingTag, setIsSavingTag] = useState(false);
   const [isSavingBio, setIsSavingBio] = useState(false);
   const [isSavingNickname, setIsSavingNickname] = useState(false);
   const [isSavingImage, setIsSavingImage] = useState(false);
+  const [imageUploadProgress, setImageUploadProgress] = useState<number | null>(
+    null,
+  );
   const [tagError, setTagError] = useState<string | null>(null);
   const [bioError, setBioError] = useState<string | null>(null);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
@@ -166,7 +171,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
   };
 
   const openTagModal = () => {
-    setTagInput(profileSummary?.tags?.[0] ?? "");
+    setTagInput(profileSummary?.tasteTag ?? "");
     setTagError(null);
     setIsTagModalOpen(true);
   };
@@ -184,8 +189,9 @@ export default function ProfileView({ userId }: ProfileViewProps) {
   };
 
   const openImageModal = () => {
-    setImageUrlInput(profileSummary?.imageUrl ?? "");
+    setImageFile(null);
     setImageError(null);
+    setImageUploadProgress(null);
     setIsImageModalOpen(true);
   };
 
@@ -209,7 +215,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     try {
       await updateMyTasteTag(nextTag);
       setProfileSummary((prev) =>
-        prev ? { ...prev, tags: [nextTag] } : prev,
+        prev ? { ...prev, tasteTag: nextTag } : prev,
       );
       setIsTagModalOpen(false);
     } catch {
@@ -282,22 +288,41 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     if (isSavingImage) {
       return;
     }
-    const nextImageUrl = imageUrlInput.trim();
-    if (!nextImageUrl) {
-      setImageError("이미지 주소를 입력해주세요.");
+    const maxBytes = Number(
+      process.env.NEXT_PUBLIC_PROFILE_IMAGE_MAX_BYTES ?? "5242880",
+    );
+    if (!imageFile) {
+      setImageError("이미지 파일을 선택해주세요.");
+      return;
+    }
+    if (imageFile.size > maxBytes) {
+      setImageError(
+        `이미지 크기는 ${Math.round(maxBytes / 1024 / 1024)}MB 이하만 가능합니다.`,
+      );
+      return;
+    }
+    if (imageFile.type && !imageFile.type.startsWith("image/")) {
+      setImageError("이미지 파일만 업로드할 수 있어요.");
       return;
     }
 
     setIsSavingImage(true);
     setImageError(null);
+    setImageUploadProgress(0);
     try {
-      await updateMyProfileImage(nextImageUrl);
+      const uploadInfo = await requestProfileImageUploadUrl(imageFile.name);
+      await uploadProfileImageToS3(
+        uploadInfo.presignedUrl,
+        imageFile,
+        setImageUploadProgress,
+      );
+      await updateMyProfileImage(uploadInfo.fileUrl);
       setProfileSummary((prev) =>
-        prev ? { ...prev, imageUrl: nextImageUrl } : prev,
+        prev ? { ...prev, profileImageUrl: uploadInfo.fileUrl } : prev,
       );
       setIsImageModalOpen(false);
     } catch {
-      setImageError("이미지 저장에 실패했어요. 다시 시도해주세요.");
+      setImageError("이미지 업로드에 실패했어요. 다시 시도해주세요.");
     } finally {
       setIsSavingImage(false);
     }
@@ -380,10 +405,10 @@ export default function ProfileView({ userId }: ProfileViewProps) {
           <div className="rounded-[32px] border border-white/70 bg-white/80 p-8 shadow-[var(--shadow)]">
             <div className="flex flex-wrap items-center gap-6">
               <div className="h-24 w-24 overflow-hidden rounded-[28px] bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c]">
-                {profileSummary?.imageUrl ? (
+                {profileSummary?.profileImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={profileSummary.imageUrl}
+                    src={profileSummary.profileImageUrl}
                     alt={profileSummary?.name ?? "프로필 이미지"}
                     className="h-full w-full object-cover"
                   />
@@ -395,7 +420,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                     {profileSummary?.name ?? "프로필 로딩 중"}
                   </h2>
                   <span className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-xs font-semibold text-[var(--muted)]">
-                    취향 태그 · {profileSummary?.tags?.[0] ?? "기록 중"}
+                    취향 태그 · {profileSummary?.tasteTag ?? "기록 중"}
                   </span>
                 </div>
                 <div className="mt-3 text-sm text-[var(--muted)]">
@@ -744,15 +769,35 @@ export default function ProfileView({ userId }: ProfileViewProps) {
               <form className="mt-6 space-y-4" onSubmit={saveImage}>
                 <div>
                   <label className="text-xs font-semibold text-[var(--muted)]">
-                    이미지 주소
+                    이미지 파일
                   </label>
-                  <input
-                    value={imageUrlInput}
-                    onChange={(event) => setImageUrlInput(event.target.value)}
-                    placeholder="https://..."
-                    className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
-                  />
+                  <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) =>
+                        setImageFile(event.target.files?.[0] ?? null)
+                      }
+                      className="w-full text-sm text-[var(--muted)] file:mr-3 file:rounded-full file:border file:border-[var(--border)] file:bg-white file:px-4 file:py-2 file:text-xs file:font-semibold file:text-[var(--ink)]"
+                    />
+                    <span className="text-xs text-[var(--muted)]">
+                      {imageFile?.name ?? "선택된 파일 없음"}
+                    </span>
+                  </div>
                 </div>
+                {imageUploadProgress !== null ? (
+                  <div className="space-y-2">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--paper-strong)]">
+                      <div
+                        className="h-full rounded-full bg-[var(--accent)] transition-all"
+                        style={{ width: `${imageUploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-[var(--muted)]">
+                      업로드 진행률 {imageUploadProgress}%
+                    </p>
+                  </div>
+                ) : null}
                 {imageError ? (
                   <p className="text-xs font-semibold text-rose-500">
                     {imageError}

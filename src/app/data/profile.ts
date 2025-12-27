@@ -5,6 +5,8 @@ export const profilesById: Record<string, ProfileSummary> = {
     id: 1,
     name: "김하나",
     bio: "천천히 읽고, 오래 기억하는 리뷰어. 따뜻한 문장과 여운이 있는 책을 좋아합니다.",
+    tasteTag: "잔잔한 성장, 따뜻한 문장",
+    profileImageUrl: "",
     tags: ["잔잔한 성장", "따뜻한 문장"],
     stats: {
       reviews: 24,
@@ -22,6 +24,8 @@ export const profilesById: Record<string, ProfileSummary> = {
     id: 2,
     name: "박지수",
     bio: "거대한 서사와 가족의 기록을 좋아합니다.",
+    tasteTag: "대하소설, 세대 이야기",
+    profileImageUrl: "",
     tags: ["대하소설", "세대 이야기"],
     stats: {
       reviews: 18,
@@ -39,6 +43,8 @@ export const profilesById: Record<string, ProfileSummary> = {
     id: 3,
     name: "조아리",
     bio: "감각적인 문장과 여름의 이야기들을 수집합니다.",
+    tasteTag: "감각적 문장, 여름",
+    profileImageUrl: "",
     tags: ["감각적 문장", "여름"],
     stats: {
       reviews: 12,
@@ -56,6 +62,8 @@ export const profilesById: Record<string, ProfileSummary> = {
     id: 4,
     name: "정유진",
     bio: "차가운 세계관과 성장 서사를 사랑합니다.",
+    tasteTag: "디스토피아, 성장 서사",
+    profileImageUrl: "",
     tags: ["디스토피아", "성장 서사"],
     stats: {
       reviews: 15,
@@ -73,6 +81,8 @@ export const profilesById: Record<string, ProfileSummary> = {
     id: 5,
     name: "이하늘",
     bio: "감정의 언어를 탐구하는 리뷰어.",
+    tasteTag: "감정 서사, 따뜻함",
+    profileImageUrl: "",
     tags: ["감정 서사", "따뜻함"],
     stats: {
       reviews: 20,
@@ -90,6 +100,8 @@ export const profilesById: Record<string, ProfileSummary> = {
     id: 6,
     name: "최은지",
     bio: "사회와 개인의 경계에 관심이 많아요.",
+    tasteTag: "사회성, 개인의 리듬",
+    profileImageUrl: "",
     tags: ["사회성", "개인의 리듬"],
     stats: {
       reviews: 9,
