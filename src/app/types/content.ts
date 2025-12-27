@@ -97,6 +97,7 @@ export type ProfileSummary = {
   name: string;
   bio: string;
   tags: string[];
+  imageUrl?: string;
   stats: ProfileStats;
   shelves: ShelfStats;
 };

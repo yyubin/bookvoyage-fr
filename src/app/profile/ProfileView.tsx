@@ -12,6 +12,12 @@ import {
   getFollowing,
   getProfileSummary,
 } from "../services/profileService";
+import {
+  updateMyBio,
+  updateMyNickname,
+  updateMyProfileImage,
+  updateMyTasteTag,
+} from "../services/userService";
 import type {
   BookmarkedReviewItem,
   CursorPage,
@@ -59,6 +65,22 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     useState<CursorPage<FollowUser> | null>(null);
   const [isFollowersLoading, setIsFollowersLoading] = useState(false);
   const [isFollowingLoading, setIsFollowingLoading] = useState(false);
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
+  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [tagInput, setTagInput] = useState("");
+  const [bioInput, setBioInput] = useState("");
+  const [nicknameInput, setNicknameInput] = useState("");
+  const [imageUrlInput, setImageUrlInput] = useState("");
+  const [isSavingTag, setIsSavingTag] = useState(false);
+  const [isSavingBio, setIsSavingBio] = useState(false);
+  const [isSavingNickname, setIsSavingNickname] = useState(false);
+  const [isSavingImage, setIsSavingImage] = useState(false);
+  const [tagError, setTagError] = useState<string | null>(null);
+  const [bioError, setBioError] = useState<string | null>(null);
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -143,6 +165,144 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     setIsFollowersLoading(false);
   };
 
+  const openTagModal = () => {
+    setTagInput(profileSummary?.tags?.[0] ?? "");
+    setTagError(null);
+    setIsTagModalOpen(true);
+  };
+
+  const openBioModal = () => {
+    setBioInput(profileSummary?.bio ?? "");
+    setBioError(null);
+    setIsBioModalOpen(true);
+  };
+
+  const openNicknameModal = () => {
+    setNicknameInput(profileSummary?.name ?? "");
+    setNicknameError(null);
+    setIsNicknameModalOpen(true);
+  };
+
+  const openImageModal = () => {
+    setImageUrlInput(profileSummary?.imageUrl ?? "");
+    setImageError(null);
+    setIsImageModalOpen(true);
+  };
+
+  const saveTag = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSavingTag) {
+      return;
+    }
+    const nextTag = tagInput.trim();
+    if (!nextTag) {
+      setTagError("태그를 입력해주세요.");
+      return;
+    }
+    if (nextTag.length > 100) {
+      setTagError("태그는 100자 이내로 입력해주세요.");
+      return;
+    }
+
+    setIsSavingTag(true);
+    setTagError(null);
+    try {
+      await updateMyTasteTag(nextTag);
+      setProfileSummary((prev) =>
+        prev ? { ...prev, tags: [nextTag] } : prev,
+      );
+      setIsTagModalOpen(false);
+    } catch {
+      setTagError("태그 저장에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setIsSavingTag(false);
+    }
+  };
+
+  const saveBio = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSavingBio) {
+      return;
+    }
+    const nextBio = bioInput.trim();
+    if (!nextBio) {
+      setBioError("소개를 입력해주세요.");
+      return;
+    }
+    if (nextBio.length > 500) {
+      setBioError("소개는 500자 이내로 입력해주세요.");
+      return;
+    }
+
+    setIsSavingBio(true);
+    setBioError(null);
+    try {
+      await updateMyBio(nextBio);
+      setProfileSummary((prev) => (prev ? { ...prev, bio: nextBio } : prev));
+      setIsBioModalOpen(false);
+    } catch {
+      setBioError("소개 저장에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setIsSavingBio(false);
+    }
+  };
+
+  const saveNickname = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSavingNickname) {
+      return;
+    }
+    const nextNickname = nicknameInput.trim();
+    if (!nextNickname) {
+      setNicknameError("닉네임을 입력해주세요.");
+      return;
+    }
+    if (nextNickname.length > 30) {
+      setNicknameError("닉네임은 30자 이내로 입력해주세요.");
+      return;
+    }
+
+    setIsSavingNickname(true);
+    setNicknameError(null);
+    try {
+      await updateMyNickname(nextNickname);
+      setProfileSummary((prev) =>
+        prev ? { ...prev, name: nextNickname } : prev,
+      );
+      setIsNicknameModalOpen(false);
+    } catch {
+      setNicknameError("닉네임 저장에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setIsSavingNickname(false);
+    }
+  };
+
+  const saveImage = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSavingImage) {
+      return;
+    }
+    const nextImageUrl = imageUrlInput.trim();
+    if (!nextImageUrl) {
+      setImageError("이미지 주소를 입력해주세요.");
+      return;
+    }
+
+    setIsSavingImage(true);
+    setImageError(null);
+    try {
+      await updateMyProfileImage(nextImageUrl);
+      setProfileSummary((prev) =>
+        prev ? { ...prev, imageUrl: nextImageUrl } : prev,
+      );
+      setIsImageModalOpen(false);
+    } catch {
+      setImageError("이미지 저장에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setIsSavingImage(false);
+    }
+  };
+
   const loadFollowing = async (cursor?: string | null) => {
     if (isFollowingLoading) {
       return;
@@ -219,7 +379,16 @@ export default function ProfileView({ userId }: ProfileViewProps) {
         <section className="mt-10 grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
           <div className="rounded-[32px] border border-white/70 bg-white/80 p-8 shadow-[var(--shadow)]">
             <div className="flex flex-wrap items-center gap-6">
-              <div className="h-24 w-24 rounded-[28px] bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c]" />
+              <div className="h-24 w-24 overflow-hidden rounded-[28px] bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c]">
+                {profileSummary?.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={profileSummary.imageUrl}
+                    alt={profileSummary?.name ?? "프로필 이미지"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : null}
+              </div>
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-serif text-3xl font-semibold text-[var(--ink)]">
@@ -239,14 +408,30 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                       <button
                         type="button"
                         className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[var(--muted)] transition hover:border-transparent hover:bg-[var(--paper-strong)]"
+                        onClick={openTagModal}
                       >
                         태그 수정
                       </button>
                       <button
                         type="button"
                         className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[var(--muted)] transition hover:border-transparent hover:bg-[var(--paper-strong)]"
+                        onClick={openBioModal}
                       >
                         소개 수정
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[var(--muted)] transition hover:border-transparent hover:bg-[var(--paper-strong)]"
+                        onClick={openNicknameModal}
+                      >
+                        닉네임 수정
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[var(--muted)] transition hover:border-transparent hover:bg-[var(--paper-strong)]"
+                        onClick={openImageModal}
+                      >
+                        이미지 수정
                       </button>
                     </div>
                   ) : null}
@@ -361,6 +546,238 @@ export default function ProfileView({ userId }: ProfileViewProps) {
             </div>
           </aside>
         </section>
+
+        {isOwner && isTagModalOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+            <div className="w-full max-w-lg rounded-[28px] border border-white/70 bg-white/95 p-6 shadow-[var(--shadow)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
+                    취향 태그 수정
+                  </p>
+                  <h3 className="mt-2 font-serif text-2xl font-semibold">
+                    내 취향 태그 바꾸기
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-xs font-semibold text-[var(--muted)]"
+                  onClick={() => setIsTagModalOpen(false)}
+                >
+                  닫기
+                </button>
+              </div>
+              <form className="mt-6 space-y-4" onSubmit={saveTag}>
+                <div>
+                  <label className="text-xs font-semibold text-[var(--muted)]">
+                    취향 태그 (100자 이내)
+                  </label>
+                  <input
+                    value={tagInput}
+                    onChange={(event) => setTagInput(event.target.value)}
+                    placeholder="예: 기록과 사유, 마음이 따뜻해지는 이야기"
+                    className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+                  />
+                </div>
+                {tagError ? (
+                  <p className="text-xs font-semibold text-rose-500">
+                    {tagError}
+                  </p>
+                ) : null}
+                <div className="flex flex-wrap justify-end gap-2 text-sm font-semibold">
+                  <button
+                    type="button"
+                    className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-[var(--ink)]"
+                    onClick={() => setIsTagModalOpen(false)}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-full bg-[var(--accent)] px-4 py-2 text-white"
+                    disabled={isSavingTag}
+                  >
+                    {isSavingTag ? "저장 중" : "저장"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
+
+        {isOwner && isBioModalOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+            <div className="w-full max-w-lg rounded-[28px] border border-white/70 bg-white/95 p-6 shadow-[var(--shadow)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
+                    소개 수정
+                  </p>
+                  <h3 className="mt-2 font-serif text-2xl font-semibold">
+                    나를 소개하는 글
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-xs font-semibold text-[var(--muted)]"
+                  onClick={() => setIsBioModalOpen(false)}
+                >
+                  닫기
+                </button>
+              </div>
+              <form className="mt-6 space-y-4" onSubmit={saveBio}>
+                <div>
+                  <label className="text-xs font-semibold text-[var(--muted)]">
+                    소개 (500자 이내)
+                  </label>
+                  <textarea
+                    value={bioInput}
+                    onChange={(event) => setBioInput(event.target.value)}
+                    placeholder="좋아하는 책과 분위기를 짧게 소개해보세요."
+                    className="mt-2 h-36 w-full resize-none rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+                  />
+                </div>
+                {bioError ? (
+                  <p className="text-xs font-semibold text-rose-500">
+                    {bioError}
+                  </p>
+                ) : null}
+                <div className="flex flex-wrap justify-end gap-2 text-sm font-semibold">
+                  <button
+                    type="button"
+                    className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-[var(--ink)]"
+                    onClick={() => setIsBioModalOpen(false)}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-full bg-[var(--accent)] px-4 py-2 text-white"
+                    disabled={isSavingBio}
+                  >
+                    {isSavingBio ? "저장 중" : "저장"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
+
+        {isOwner && isNicknameModalOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+            <div className="w-full max-w-lg rounded-[28px] border border-white/70 bg-white/95 p-6 shadow-[var(--shadow)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
+                    닉네임 수정
+                  </p>
+                  <h3 className="mt-2 font-serif text-2xl font-semibold">
+                    프로필 이름 바꾸기
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-xs font-semibold text-[var(--muted)]"
+                  onClick={() => setIsNicknameModalOpen(false)}
+                >
+                  닫기
+                </button>
+              </div>
+              <form className="mt-6 space-y-4" onSubmit={saveNickname}>
+                <div>
+                  <label className="text-xs font-semibold text-[var(--muted)]">
+                    닉네임 (30자 이내)
+                  </label>
+                  <input
+                    value={nicknameInput}
+                    onChange={(event) => setNicknameInput(event.target.value)}
+                    placeholder="새 닉네임을 입력해주세요."
+                    className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+                  />
+                </div>
+                {nicknameError ? (
+                  <p className="text-xs font-semibold text-rose-500">
+                    {nicknameError}
+                  </p>
+                ) : null}
+                <div className="flex flex-wrap justify-end gap-2 text-sm font-semibold">
+                  <button
+                    type="button"
+                    className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-[var(--ink)]"
+                    onClick={() => setIsNicknameModalOpen(false)}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-full bg-[var(--accent)] px-4 py-2 text-white"
+                    disabled={isSavingNickname}
+                  >
+                    {isSavingNickname ? "저장 중" : "저장"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
+
+        {isOwner && isImageModalOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+            <div className="w-full max-w-lg rounded-[28px] border border-white/70 bg-white/95 p-6 shadow-[var(--shadow)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
+                    이미지 수정
+                  </p>
+                  <h3 className="mt-2 font-serif text-2xl font-semibold">
+                    프로필 이미지 바꾸기
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-xs font-semibold text-[var(--muted)]"
+                  onClick={() => setIsImageModalOpen(false)}
+                >
+                  닫기
+                </button>
+              </div>
+              <form className="mt-6 space-y-4" onSubmit={saveImage}>
+                <div>
+                  <label className="text-xs font-semibold text-[var(--muted)]">
+                    이미지 주소
+                  </label>
+                  <input
+                    value={imageUrlInput}
+                    onChange={(event) => setImageUrlInput(event.target.value)}
+                    placeholder="https://..."
+                    className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+                  />
+                </div>
+                {imageError ? (
+                  <p className="text-xs font-semibold text-rose-500">
+                    {imageError}
+                  </p>
+                ) : null}
+                <div className="flex flex-wrap justify-end gap-2 text-sm font-semibold">
+                  <button
+                    type="button"
+                    className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-[var(--ink)]"
+                    onClick={() => setIsImageModalOpen(false)}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-full bg-[var(--accent)] px-4 py-2 text-white"
+                    disabled={isSavingImage}
+                  >
+                    {isSavingImage ? "저장 중" : "저장"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
 
         <section className="mt-10 grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
           <div className="rounded-[32px] border border-[var(--border)] bg-white/85 p-6 shadow-[var(--shadow)]">
