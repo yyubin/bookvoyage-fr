@@ -146,6 +146,33 @@ export type BookmarkPageResponse = {
 
 export type ReviewResponse = {
   reviewId: number;
+  userId?: number;
+  reviewerId?: number;
+  authorNickname?: string;
+  authorTasteTag?: string;
+  bookId: number;
+  title: string;
+  authors: string[];
+  isbn10: string | null;
+  isbn13: string | null;
+  coverUrl: string | null;
+  publisher: string | null;
+  publishedDate: string | null;
+  description: string | null;
+  language: string | null;
+  pageCount: number | null;
+  googleVolumeId: string | null;
+  rating: number;
+  summary: string;
+  content: string;
+  createdAt: string;
+  visibility: string;
+  deleted: boolean;
+  viewCount: string;
+  genre: string | null;
+  keywords: string[];
+  highlights: string[];
+  mentions?: unknown[];
 };
 
 export type ProfileSummary = {

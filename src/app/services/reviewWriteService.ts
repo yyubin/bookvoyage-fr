@@ -1,4 +1,4 @@
-import { apiFetchJson } from "./apiClient";
+import { apiFetch, apiFetchJson } from "./apiClient";
 import type { ReviewResponse } from "../types/content";
 import type { BookSearchItem } from "../types/content";
 
@@ -52,4 +52,26 @@ export async function createReview(
     method: "POST",
     body: JSON.stringify(request),
   });
+}
+
+export async function updateReview(
+  reviewId: number | string,
+  payload: CreateReviewPayload,
+): Promise<ReviewResponse> {
+  return apiFetchJson<ReviewResponse>(`/api/reviews/${reviewId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteReview(
+  reviewId: number | string,
+): Promise<void> {
+  const response = await apiFetch(`/api/reviews/${reviewId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete review: ${response.status}`);
+  }
 }

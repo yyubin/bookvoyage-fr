@@ -2,38 +2,34 @@ import Link from "next/link";
 import AuthButtons from "../../components/AuthButtons";
 import AuthReviewButton from "../../components/AuthReviewButton";
 import LogoMark from "../../components/LogoMark";
-import { notFound } from "next/navigation";
-import { getCommentsByReview } from "../../services/commentService";
-import { getReviewById, getReviews } from "../../services/reviewService";
-import CommentModalTrigger from "./CommentModalTrigger";
+import { notFound, redirect } from "next/navigation";
+import { getServerUser } from "../../services/authServer";
+import { getReviewDetail } from "../../services/reviewDetailService";
+import ReviewOwnerActions from "./ReviewOwnerActions";
 import SpoilerToggle from "./SpoilerToggle";
 
 type ReviewPageProps = {
   params: Promise<{ reviewId: string }>;
 };
 
-export async function generateStaticParams() {
-  const reviewPage = await getReviews({ cursor: null, limit: 200 });
-  return reviewPage.items.map((review) => ({
-    reviewId: review.id.toString(),
-  }));
-}
-
 export default async function ReviewPage({ params }: ReviewPageProps) {
   const { reviewId } = await params;
-  const review = await getReviewById(Number(reviewId));
+  const result = await getReviewDetail(Number(reviewId));
 
-  if (!review) {
+  if (!result.review) {
+    if (result.status === 403 || result.status === 401) {
+      redirect(`/auth?redirect=/reviews/${reviewId}`);
+    }
     notFound();
   }
-
-  const [commentsPage, allReviewsPage] = await Promise.all([
-    getCommentsByReview(review.id, { cursor: null, limit: 10 }),
-    getReviews({ cursor: null, limit: 200 }),
-  ]);
-
-  const comments = commentsPage.items;
-  const allReviews = allReviewsPage.items;
+  const review = result.review;
+  const user = await getServerUser();
+  const viewerId = user?.userId ?? user?.id;
+  const reviewerId = review.userId ?? review.reviewerId;
+  const isOwner =
+    viewerId !== undefined &&
+    reviewerId !== undefined &&
+    String(viewerId) === String(reviewerId);
 
   return (
     <div className="paper-texture min-h-screen">
@@ -65,10 +61,19 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
         <main className="mt-12 grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="rounded-[32px] border border-white/70 bg-white/80 p-8 shadow-[var(--shadow)]">
             <div className="flex flex-col gap-6 sm:flex-row">
-              <div className="h-40 w-28 flex-shrink-0 rounded-3xl bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c] shadow-md" />
+              <div className="h-40 w-28 flex-shrink-0 overflow-hidden rounded-3xl bg-gradient-to-br from-[#f2d4b7] via-[#e4b48b] to-[#c46a3c] shadow-md">
+                {review.coverUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={review.coverUrl}
+                    alt={review.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : null}
+              </div>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-[var(--muted)]">
-                  {review.author}
+                  {review.authors.join(", ")}
                 </p>
                 <h2 className="mt-2 font-serif text-3xl font-semibold text-[var(--ink)]">
                   {review.title}
@@ -77,35 +82,29 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
                   <span className="rounded-full bg-[var(--paper-strong)] px-3 py-1">
                     평점 {review.rating}
                   </span>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {review.reactions.slice(0, 3).map((reaction) => (
-                      <span
-                        key={reaction.emoji}
-                        className="rounded-full border border-[var(--border)] px-3 py-1"
-                      >
-                        {reaction.emoji} {reaction.count}
-                      </span>
-                    ))}
-                  </div>
-                  <CommentModalTrigger
-                    reviewId={review.id}
-                    commentsCount={review.comments}
-                    initialComments={comments}
-                    initialCursor={commentsPage.nextCursor}
-                  />
+                  <span className="rounded-full border border-[var(--border)] px-3 py-1">
+                    조회수 {review.viewCount}
+                  </span>
                 </div>
-                <div className="mt-4 flex items-center gap-2 text-sm text-[var(--muted)]">
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
                   <Link
-                    href={`/profile/${review.reviewerId}`}
+                    href={
+                      review.userId
+                        ? `/profile/${review.userId}`
+                        : "/profile"
+                    }
                     className="font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
                   >
-                    {review.reviewer}
+                    {review.authorNickname ?? "리뷰어"}
                   </Link>
                   <span className="h-1 w-1 rounded-full bg-[var(--muted)]" />
-                  <span>리뷰어</span>
+                  <span>{review.authorTasteTag ?? "취향 태그"}</span>
                   <span className="h-1 w-1 rounded-full bg-[var(--muted)]" />
-                  <span>오늘</span>
+                  <span>{review.createdAt}</span>
                 </div>
+                {isOwner ? (
+                  <ReviewOwnerActions review={review} ownerId={viewerId} />
+                ) : null}
               </div>
             </div>
 
@@ -114,16 +113,16 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
                 한줄 요약
               </p>
               <p className="mt-3 text-base leading-relaxed text-[var(--ink)]">
-                {review.blurb}
+                {review.summary}
               </p>
             </div>
 
             <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
-              {review.tags.map((tag) => (
+              {review.keywords.map((tag) => (
                 <Link
-                  key={`${review.id}-${tag}`}
+                  key={`${review.reviewId}-${tag}`}
                   href={`/search?q=${encodeURIComponent(`#${tag}`)}`}
-                  className="rounded-full border border-[var(--border)] bg-white px-3 py-1 transition hover:border-transparent hover:bg-[var(--paper-strong)]"
+                  className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[var(--accent)] transition hover:border-transparent hover:bg-[var(--paper-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
                   #{tag}
                 </Link>
@@ -131,127 +130,42 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             </div>
 
             <div className="mt-6">
-              <SpoilerToggle isSpoiler={review.spoiler} content={review.review} />
+              <SpoilerToggle isSpoiler={false} content={review.content} />
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3 text-xs font-semibold">
               {review.highlights.map((item) => (
                 <span
                   key={item}
-                  className="rounded-full border border-[var(--border)] bg-white px-3 py-2 text-[var(--muted)]"
+                  className="rounded-full border border-[var(--border)] bg-white px-3 py-2 text-[var(--accent)]"
                 >
                   {item}
                 </span>
               ))}
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <button className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-white">
-                좋아요 {review.likes}
-              </button>
-              <button className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)]">
-                북마크 {review.bookmarks}
-              </button>
-              <button className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)]">
-                공유
-              </button>
-            </div>
-
-            <div className="mt-10 rounded-[24px] border border-[var(--border)] bg-white/70 p-6">
-              <div className="flex items-center justify-between gap-4">
-                <h3 className="font-serif text-xl font-semibold">
-                  다른 더미 리뷰 보기
-                </h3>
-                <span className="text-xs font-semibold text-[var(--muted)]">
-                  클릭해서 상세 이동
-                </span>
-              </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {allReviews
-                  .filter((item) => item.id !== review.id)
-                  .slice(0, 4)
-                  .map((item) => (
-                    <Link
-                      key={item.id}
-                      href={`/reviews/${item.id}`}
-                      className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                    >
-                      <p className="font-semibold text-[var(--ink)]">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-[var(--muted)]">
-                        {item.author} · {item.reviewer}
-                      </p>
-                    </Link>
-                  ))}
-              </div>
+            <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--muted)]">
+              <span className="rounded-full border border-[var(--border)] bg-white px-3 py-1">
+                {review.genre ?? "장르 미지정"}
+              </span>
+              <span className="rounded-full border border-[var(--border)] bg-white px-3 py-1">
+                {review.visibility === "PRIVATE" ? "비공개" : "전체 공개"}
+              </span>
             </div>
           </section>
 
           <aside className="space-y-6">
             <div className="rounded-[28px] border border-[var(--border)] bg-white/85 p-6 shadow-[var(--shadow)]">
-              <h3 className="font-serif text-xl font-semibold">리액션</h3>
-              <div className="mt-4 grid gap-3 text-sm">
-                <div className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-3">
-                  <span>좋아요</span>
-                  <span className="font-semibold text-[var(--ink)]">
-                    {review.likes}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-3">
-                  <span>북마크</span>
-                  <span className="font-semibold text-[var(--ink)]">
-                    {review.bookmarks}
-                  </span>
-                </div>
-                <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3">
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
-                    {review.reactions.map((reaction) => (
-                      <span
-                        key={reaction.emoji}
-                        className="rounded-full border border-[var(--border)] px-3 py-1"
-                      >
-                        {reaction.emoji} {reaction.count}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+              <h3 className="font-serif text-xl font-semibold">출간 정보</h3>
+              <div className="mt-4 rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--muted)]">
+                출간 {review.publishedDate ?? "정보 없음"}
               </div>
             </div>
 
             <div className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow)]">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-serif text-xl font-semibold">댓글</h3>
-                <CommentModalTrigger
-                  reviewId={review.id}
-                  commentsCount={review.comments}
-                  initialComments={comments}
-                  initialCursor={commentsPage.nextCursor}
-                />
-              </div>
-              <div className="mt-4 space-y-4 text-sm">
-                {comments.map((comment) => (
-                  <div
-                    key={`${comment.user}-${comment.time}`}
-                    className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3"
-                  >
-                    <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-                      <Link
-                        href={`/profile/${comment.userId}`}
-                        className="font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
-                      >
-                        {comment.user}
-                      </Link>
-                      <span>{comment.time}</span>
-                    </div>
-                    <p className="mt-2 text-sm text-[var(--muted)]">
-                      {comment.content}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-5 rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-3 text-xs text-[var(--muted)]">
-                댓글을 남기려면 상단 댓글 버튼을 눌러주세요.
+              <h3 className="font-serif text-xl font-semibold">댓글</h3>
+              <div className="mt-4 rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-3 text-xs text-[var(--muted)]">
+                댓글 기능은 준비 중입니다.
               </div>
             </div>
           </aside>
