@@ -1,35 +1,27 @@
-import { reviews } from "../data/reviews";
-import type {
-  CursorPage,
-  CursorQuery,
-  ReviewComment,
-} from "../types/content";
-import { paginateWithCursor } from "./pagination";
-
-type CommentApiResponse = CursorPage<ReviewComment> | null;
-
-async function fetchCommentsFromApi(
-  _reviewId: number,
-  _query: CursorQuery,
-): Promise<CommentApiResponse> {
-  return null;
-}
+import type { CommentPageResponse, CommentResponse } from "../types/content";
+import { apiFetchJson } from "./apiClient";
 
 export async function getCommentsByReview(
   reviewId: number,
-  query: CursorQuery,
-): Promise<CursorPage<ReviewComment>> {
-  const apiResult = await fetchCommentsFromApi(reviewId, query);
-  const fallbackComments =
-    reviews.find((item) => item.id === reviewId)?.commentList ?? [];
-
-  if (apiResult && apiResult.items.length > 0) {
-    return apiResult;
+  query: { cursor: number | null; limit: number },
+): Promise<CommentPageResponse> {
+  const params = new URLSearchParams();
+  if (query.cursor !== null) {
+    params.set("cursor", String(query.cursor));
   }
+  params.set("size", String(query.limit));
+  return apiFetchJson<CommentPageResponse>(
+    `/api/reviews/${reviewId}/comments?${params.toString()}`,
+  );
+}
 
-  return paginateWithCursor({
-    items: fallbackComments,
-    cursor: query.cursor,
-    limit: query.limit,
+export async function createComment(
+  reviewId: number,
+  content: string,
+  parentCommentId?: number | null,
+): Promise<CommentResponse> {
+  return apiFetchJson<CommentResponse>(`/api/reviews/${reviewId}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ content, parentCommentId: parentCommentId ?? null }),
   });
 }

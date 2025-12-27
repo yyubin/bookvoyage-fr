@@ -175,6 +175,22 @@ export type ReviewResponse = {
   mentions?: unknown[];
 };
 
+export type CommentResponse = {
+  commentId: number;
+  reviewId: number;
+  userId: number;
+  content: string;
+  parentCommentId: number | null;
+  createdAt: string;
+  editedAt: string | null;
+  mentions: unknown[];
+};
+
+export type CommentPageResponse = {
+  comments: CommentResponse[];
+  nextCursor: number | null;
+};
+
 export type ProfileSummary = {
   id: number;
   name: string;

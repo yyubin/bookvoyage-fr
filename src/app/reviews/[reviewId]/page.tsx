@@ -6,7 +6,9 @@ import { notFound, redirect } from "next/navigation";
 import { getServerUser } from "../../services/authServer";
 import { getReviewDetail } from "../../services/reviewDetailService";
 import ReviewOwnerActions from "./ReviewOwnerActions";
+import ReviewReactions from "./ReviewReactions";
 import SpoilerToggle from "./SpoilerToggle";
+import CommentModalTrigger from "./CommentModalTrigger";
 
 type ReviewPageProps = {
   params: Promise<{ reviewId: string }>;
@@ -85,6 +87,12 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
                   <span className="rounded-full border border-[var(--border)] px-3 py-1">
                     조회수 {review.viewCount}
                   </span>
+                  <CommentModalTrigger
+                    reviewId={review.reviewId}
+                    commentsCount={0}
+                    initialComments={[]}
+                    initialCursor={null}
+                  />
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
                   <Link
@@ -143,6 +151,8 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
                 </span>
               ))}
             </div>
+
+            <ReviewReactions />
 
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--muted)]">
               <span className="rounded-full border border-[var(--border)] bg-white px-3 py-1">

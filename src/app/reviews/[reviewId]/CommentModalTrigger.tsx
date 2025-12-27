@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { getCommentsByReview } from "../../services/commentService";
-import type { ReviewComment } from "../../types/content";
+import { createComment, getCommentsByReview } from "../../services/commentService";
+import type { CommentResponse } from "../../types/content";
 
 type CommentModalTriggerProps = {
   reviewId: number;
-  commentsCount: string;
-  initialComments: ReviewComment[];
-  initialCursor: string | null;
+  commentsCount: number;
+  initialComments: CommentResponse[];
+  initialCursor: number | null;
 };
 
 export default function CommentModalTrigger({
@@ -22,6 +22,8 @@ export default function CommentModalTrigger({
   const [comments, setComments] = useState(initialComments);
   const [nextCursor, setNextCursor] = useState(initialCursor);
   const [isLoading, setIsLoading] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const loadMore = async () => {
@@ -33,7 +35,7 @@ export default function CommentModalTrigger({
       cursor: nextCursor,
       limit: 8,
     });
-    setComments((prev) => [...prev, ...page.items]);
+    setComments((prev) => [...prev, ...page.comments]);
     setNextCursor(page.nextCursor);
     setIsLoading(false);
   };
@@ -49,7 +51,7 @@ export default function CommentModalTrigger({
         cursor: null,
         limit: 8,
       });
-      setComments(page.items);
+      setComments(page.comments);
       setNextCursor(page.nextCursor);
       setIsLoading(false);
     };
@@ -117,7 +119,7 @@ export default function CommentModalTrigger({
             <div className="mt-4 space-y-3 text-sm">
               {comments.map((comment) => (
                 <div
-                  key={`${comment.user}-${comment.time}`}
+                  key={comment.commentId}
                   className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3"
                 >
                   <div className="flex items-center justify-between text-xs text-[var(--muted)]">
@@ -125,9 +127,9 @@ export default function CommentModalTrigger({
                       href={`/profile/${comment.userId}`}
                       className="font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
                     >
-                      {comment.user}
+                      user-{comment.userId}
                     </Link>
-                    <span>{comment.time}</span>
+                    <span>{comment.createdAt}</span>
                   </div>
                   <p className="mt-2 text-sm text-[var(--muted)]">
                     {comment.content}
@@ -162,17 +164,43 @@ export default function CommentModalTrigger({
             ) : null}
             <div className="mt-5">
               <textarea
+                value={newComment}
+                onChange={(event) => setNewComment(event.target.value)}
                 className="h-28 w-full resize-none rounded-2xl border border-[var(--border)] bg-white/90 px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
                 placeholder="댓글을 남겨보세요."
               />
               <div className="mt-3 flex justify-end">
                 <button
                   className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-white"
+                  onClick={async () => {
+                    if (!newComment.trim() || isLoading) {
+                      return;
+                    }
+                    setIsLoading(true);
+                    setSubmitError(null);
+                    try {
+                      await createComment(reviewId, newComment.trim());
+                      setNewComment("");
+                      const page = await getCommentsByReview(reviewId, {
+                        cursor: null,
+                        limit: 8,
+                      });
+                      setComments(page.comments);
+                      setNextCursor(page.nextCursor);
+                    } catch {
+                      setSubmitError("댓글 등록에 실패했어요.");
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
                   type="button"
                 >
                   댓글 등록
                 </button>
               </div>
+              {submitError ? (
+                <p className="mt-3 text-xs text-rose-500">{submitError}</p>
+              ) : null}
             </div>
           </div>
         </div>
