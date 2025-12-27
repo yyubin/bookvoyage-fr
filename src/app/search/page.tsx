@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AuthButtons from "../components/AuthButtons";
 import LogoMark from "../components/LogoMark";
+import AddToLibraryButton from "../components/AddToLibraryButton";
 import { searchContent } from "../services/searchService";
 
 type SearchPageProps = {
@@ -177,21 +178,28 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   description: book.description ?? "",
                 });
                 return (
-                  <Link
+                  <div
                     key={`${book.title}-${identifier}`}
-                    href={`/books/external/${identifier}?${detailParams.toString()}`}
-                    className="block rounded-2xl border border-[var(--border)] bg-white px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="rounded-2xl border border-[var(--border)] bg-white px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-md"
                   >
-                  <p className="text-sm font-semibold text-[var(--ink)]">
-                    {book.title}
-                  </p>
-                  <p className="text-xs text-[var(--muted)]">
-                    {book.authors.join(", ")}
-                  </p>
-                  <p className="mt-2 text-xs text-[var(--muted)]">
-                    {book.publisher ?? "출판사 정보 없음"}
-                  </p>
-                  </Link>
+                    <Link
+                      href={`/books/external/${identifier}?${detailParams.toString()}`}
+                      className="block"
+                    >
+                      <p className="text-sm font-semibold text-[var(--ink)]">
+                        {book.title}
+                      </p>
+                      <p className="text-xs text-[var(--muted)]">
+                        {book.authors.join(", ")}
+                      </p>
+                      <p className="mt-2 text-xs text-[var(--muted)]">
+                        {book.publisher ?? "출판사 정보 없음"}
+                      </p>
+                    </Link>
+                    <div className="mt-4">
+                      <AddToLibraryButton book={book} />
+                    </div>
+                  </div>
                 );
               })}
               {results.books.items.length === 0 ? (

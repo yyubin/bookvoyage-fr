@@ -3,8 +3,10 @@ import { API_BASE_URL } from "./authService";
 
 export type ServerAuthUser = {
   id?: number | string;
+  userId?: number | string;
   email?: string;
   username?: string;
+  nickname?: string;
 };
 
 export async function getServerUser(): Promise<ServerAuthUser | null> {

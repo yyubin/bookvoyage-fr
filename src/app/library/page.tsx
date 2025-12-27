@@ -3,8 +3,11 @@ import { redirect } from "next/navigation";
 import LogoMark from "../components/LogoMark";
 import AuthButtons from "../components/AuthButtons";
 import { getServerUser } from "../services/authServer";
-import { getBooks } from "../services/bookService";
-import { getReviews } from "../services/reviewService";
+import {
+  getBookmarkedReviews,
+  getUserBooksByStatus,
+  getUserReviewsByUser,
+} from "../services/libraryService";
 
 export default async function LibraryPage() {
   const user = await getServerUser();
@@ -12,17 +15,37 @@ export default async function LibraryPage() {
     redirect("/auth?redirect=/library");
   }
 
-  const [bookPage, reviewPage] = await Promise.all([
-    getBooks({ cursor: null, limit: 12 }),
-    getReviews({ cursor: null, limit: 200 }),
-  ]);
+  const userId = user.userId ?? user.id;
+  if (!userId) {
+    redirect("/auth?redirect=/library");
+  }
 
-  const readingBooks = bookPage.items.slice(0, 3);
-  const finishedBooks = bookPage.items.slice(3, 6);
-  const myReviews = reviewPage.items.filter(
-    (review) => review.reviewerId === "user-001",
-  );
-  const bookmarkedReviews = reviewPage.items.slice(0, 3);
+  const [readingResponse, finishedResponse, reviewsResponse, bookmarksResponse] =
+    await Promise.all([
+      getUserBooksByStatus("READING"),
+      getUserBooksByStatus("COMPLETED"),
+      getUserReviewsByUser(userId, 3),
+      getBookmarkedReviews(3),
+    ]);
+
+  const readingBooks = readingResponse.items;
+  const finishedBooks = finishedResponse.items;
+  const myReviews = reviewsResponse.reviews;
+  const bookmarkedReviews =
+    bookmarksResponse.reviews ?? bookmarksResponse.items ?? [];
+
+  const formatStatus = (status: string) => {
+    switch (status) {
+      case "READING":
+        return "읽는 중";
+      case "COMPLETED":
+        return "완독";
+      case "WANT_TO_READ":
+        return "찜";
+      default:
+        return status;
+    }
+  };
 
   return (
     <div className="paper-texture min-h-screen">
@@ -60,18 +83,18 @@ export default async function LibraryPage() {
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 {readingBooks.map((book) => (
                   <Link
-                    key={book.id}
-                    href={`/books/${book.slug}`}
+                    key={book.userBookId}
+                    href={`/library/books/${book.bookId}`}
                     className="rounded-[24px] border border-[var(--border)] bg-white px-4 py-4 transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <p className="text-sm font-semibold text-[var(--ink)]">
                       {book.title}
                     </p>
                     <p className="text-xs text-[var(--muted)]">
-                      {book.author}
+                      {book.authors.join(", ")}
                     </p>
                     <p className="mt-2 text-xs text-[var(--muted)]">
-                      #{book.tags.join(" #")}
+                      진행률 {book.progressPercentage}%
                     </p>
                   </Link>
                 ))}
@@ -93,18 +116,18 @@ export default async function LibraryPage() {
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 {finishedBooks.map((book) => (
                   <Link
-                    key={book.id}
-                    href={`/books/${book.slug}`}
+                    key={book.userBookId}
+                    href={`/library/books/${book.bookId}`}
                     className="rounded-[24px] border border-[var(--border)] bg-white px-4 py-4 transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <p className="text-sm font-semibold text-[var(--ink)]">
                       {book.title}
                     </p>
                     <p className="text-xs text-[var(--muted)]">
-                      {book.author}
+                      {book.authors.join(", ")}
                     </p>
                     <p className="mt-2 text-xs text-[var(--muted)]">
-                      #{book.tags.join(" #")}
+                      {formatStatus(book.status)}
                     </p>
                   </Link>
                 ))}
@@ -128,8 +151,8 @@ export default async function LibraryPage() {
               <div className="mt-4 space-y-3 text-sm">
                 {myReviews.slice(0, 3).map((review) => (
                   <Link
-                    key={review.id}
-                    href={`/reviews/${review.id}`}
+                    key={review.reviewId}
+                    href={`/reviews/${review.reviewId}`}
                     className="block rounded-2xl border border-[var(--border)] bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <p className="font-semibold text-[var(--ink)]">
@@ -147,7 +170,7 @@ export default async function LibraryPage() {
                 ) : null}
               </div>
               <Link
-                href="/profile"
+                href={`/profile/${userId}/reviews`}
                 className="mt-4 inline-flex text-xs font-semibold text-[var(--accent)]"
               >
                 리뷰 전체 보기
@@ -166,15 +189,15 @@ export default async function LibraryPage() {
               <div className="mt-4 space-y-3 text-sm">
                 {bookmarkedReviews.map((review) => (
                   <Link
-                    key={review.id}
-                    href={`/reviews/${review.id}`}
+                    key={review.reviewId}
+                    href={`/reviews/${review.reviewId}`}
                     className="block rounded-2xl border border-[var(--border)] bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <p className="font-semibold text-[var(--ink)]">
                       {review.title}
                     </p>
                     <p className="text-xs text-[var(--muted)]">
-                      {review.reviewer}
+                      {review.reviewerNickname ?? "리뷰 정보 없음"}
                     </p>
                   </Link>
                 ))}
@@ -185,7 +208,7 @@ export default async function LibraryPage() {
                 ) : null}
               </div>
               <Link
-                href="/profile/1/bookmarks"
+                href={`/profile/${userId}/bookmarks`}
                 className="mt-4 inline-flex text-xs font-semibold text-[var(--accent)]"
               >
                 북마크 전체 보기

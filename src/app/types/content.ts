@@ -92,6 +92,55 @@ export type SearchResults = {
   reviews: ReviewSearchPage;
 };
 
+export type UserBookResponse = {
+  userBookId: number;
+  bookId: number;
+  title: string;
+  authors: string[];
+  isbn10: string | null;
+  isbn13: string | null;
+  coverUrl: string | null;
+  publisher: string | null;
+  publishedDate: string | null;
+  description: string | null;
+  language: string | null;
+  pageCount: number | null;
+  googleVolumeId: string | null;
+  status: string;
+  progressPercentage: number;
+  rating: number | null;
+  memo: string | null;
+  readingCount: number;
+  startDate: string | null;
+  completionDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type UserBookListResponse = {
+  items: UserBookResponse[];
+};
+
+export type UserReviewResponse = {
+  reviewId: number;
+  title: string;
+  rating: number;
+  summary: string;
+  createdAt: string;
+  reviewerNickname?: string;
+};
+
+export type UserReviewPageResponse = {
+  reviews: UserReviewResponse[];
+  nextCursor: number | null;
+};
+
+export type BookmarkPageResponse = {
+  reviews?: UserReviewResponse[];
+  items?: UserReviewResponse[];
+  nextCursor?: number | null;
+};
+
 export type ProfileSummary = {
   id: number;
   name: string;
