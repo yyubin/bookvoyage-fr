@@ -152,7 +152,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
               ))}
             </div>
 
-            <ReviewReactions />
+            <ReviewReactions reviewId={review.reviewId} />
 
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--muted)]">
               <span className="rounded-full border border-[var(--border)] bg-white px-3 py-1">

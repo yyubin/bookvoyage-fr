@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import AuthButtons from "../../components/AuthButtons";
 import { useAuth } from "../../components/AuthProvider";
 import LogoMark from "../../components/LogoMark";
-import { searchContent } from "../../services/searchService";
+import { searchBooks } from "../../services/searchService";
 import { createReview } from "../../services/reviewWriteService";
 import type { BookSearchItem } from "../../types/content";
+
+const BOOK_PAGE_SIZE = 6;
 
 export default function ReviewCreatePage() {
   const router = useRouter();
@@ -30,6 +32,11 @@ export default function ReviewCreatePage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<BookSearchItem[]>([]);
   const [selectedBook, setSelectedBook] = useState<BookSearchItem | null>(null);
+  const [bookStartIndex, setBookStartIndex] = useState(0);
+  const [bookNextStartIndex, setBookNextStartIndex] = useState<number | null>(
+    null,
+  );
+  const [bookTotalItems, setBookTotalItems] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -69,6 +76,31 @@ export default function ReviewCreatePage() {
     setHighlightInput("");
   };
 
+  const runBookSearch = async (query: string, startIndex: number) => {
+    setIsSearching(true);
+    setSearchError(null);
+    try {
+      const result = await searchBooks(query, {
+        startIndex,
+        size: BOOK_PAGE_SIZE,
+      });
+      setSearchResults(result.items);
+      setBookStartIndex(startIndex);
+      setBookNextStartIndex(result.nextStartIndex);
+      setBookTotalItems(result.totalItems);
+      if (result.items.length === 0) {
+        setSearchError("검색 결과가 없습니다.");
+      }
+    } catch {
+      setSearchResults([]);
+      setBookNextStartIndex(null);
+      setBookTotalItems(null);
+      setSearchError("검색에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   const handleSearch = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const query = searchQuery.trim();
@@ -77,19 +109,24 @@ export default function ReviewCreatePage() {
       setSearchError("검색어를 입력해주세요.");
       return;
     }
-    setIsSearching(true);
-    setSearchError(null);
-    try {
-      const result = await searchContent(query, { bookSize: 6, reviewSize: 0 });
-      setSearchResults(result.books.items);
-      if (result.books.items.length === 0) {
-        setSearchError("검색 결과가 없습니다.");
-      }
-    } catch {
-      setSearchError("검색에 실패했어요. 다시 시도해주세요.");
-    } finally {
-      setIsSearching(false);
+    await runBookSearch(query, 0);
+  };
+
+  const handlePrevPage = () => {
+    const query = searchQuery.trim();
+    if (!query || bookStartIndex <= 0) {
+      return;
     }
+    const prevStartIndex = Math.max(0, bookStartIndex - BOOK_PAGE_SIZE);
+    void runBookSearch(query, prevStartIndex);
+  };
+
+  const handleNextPage = () => {
+    const query = searchQuery.trim();
+    if (!query || bookNextStartIndex === null) {
+      return;
+    }
+    void runBookSearch(query, bookNextStartIndex);
   };
 
   const handleSubmit = async () => {
@@ -219,26 +256,53 @@ export default function ReviewCreatePage() {
             ) : null}
 
             {searchResults.length > 0 ? (
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                {searchResults.map((book) => (
-                  <button
-                    key={`${book.title}-${book.googleVolumeId ?? book.isbn13 ?? book.isbn10 ?? "book"}`}
-                    type="button"
-                    onClick={() => setSelectedBook(book)}
-                    className="rounded-[20px] border border-[var(--border)] bg-white px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-md"
-                  >
-                    <p className="text-sm font-semibold text-[var(--ink)]">
-                      {book.title}
-                    </p>
-                    <p className="text-xs text-[var(--muted)]">
-                      {book.authors.join(", ")}
-                    </p>
-                    <p className="mt-1 text-xs text-[var(--muted)]">
-                      {book.publisher ?? "출판사 정보 없음"}
-                    </p>
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  {searchResults.map((book) => (
+                    <button
+                      key={`${book.title}-${book.googleVolumeId ?? book.isbn13 ?? book.isbn10 ?? "book"}`}
+                      type="button"
+                      onClick={() => setSelectedBook(book)}
+                      className="rounded-[20px] border border-[var(--border)] bg-white px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-md"
+                    >
+                      <p className="text-sm font-semibold text-[var(--ink)]">
+                        {book.title}
+                      </p>
+                      <p className="text-xs text-[var(--muted)]">
+                        {book.authors.join(", ")}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--muted)]">
+                        {book.publisher ?? "출판사 정보 없음"}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-[var(--muted)]">
+                  <span>
+                    {bookTotalItems !== null
+                      ? `${bookStartIndex + 1}-${bookStartIndex + searchResults.length} / ${bookTotalItems}`
+                      : null}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handlePrevPage}
+                      disabled={isSearching || bookStartIndex <= 0}
+                      className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-xs font-semibold text-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      이전
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNextPage}
+                      disabled={isSearching || bookNextStartIndex === null}
+                      className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-xs font-semibold text-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      다음
+                    </button>
+                  </div>
+                </div>
+              </>
             ) : null}
           </section>
 

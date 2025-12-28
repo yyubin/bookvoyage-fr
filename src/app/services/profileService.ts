@@ -13,6 +13,7 @@ import { apiFetchJson } from "./apiClient";
 
 type ProfileResponse = ProfileSummary;
 type FollowResponse = CursorPage<FollowUser>;
+type FollowStatusResponse = { following: boolean };
 type ReviewResponse = CursorPage<ProfileReviewItem>;
 type ReadingBooksResponse = ReadingBookItem[];
 type BookmarkedReviewsResponse = BookmarkedReviewItem[];
@@ -50,6 +51,22 @@ async function fetchFollowingFromApi(
   return apiFetchJson<FollowResponse>(
     `/api/profile/${userId}/following?${params.toString()}`,
   );
+}
+
+async function fetchFollowStatusFromApi(
+  targetUserId: string,
+): Promise<FollowStatusResponse> {
+  return apiFetchJson<FollowStatusResponse>(
+    `/api/users/${targetUserId}/follow-status`,
+  );
+}
+
+async function toggleFollowFromApi(
+  targetUserId: string,
+): Promise<FollowStatusResponse> {
+  return apiFetchJson<FollowStatusResponse>(`/api/users/${targetUserId}/follow`, {
+    method: "POST",
+  });
 }
 
 export async function fetchUserReviews(
@@ -123,4 +140,18 @@ export async function getFollowing(
   } catch {
     return { items: [], nextCursor: null };
   }
+}
+
+export async function getFollowStatus(targetUserId: string): Promise<boolean> {
+  try {
+    const response = await fetchFollowStatusFromApi(targetUserId);
+    return response.following;
+  } catch {
+    return false;
+  }
+}
+
+export async function toggleFollow(targetUserId: string): Promise<boolean> {
+  const response = await toggleFollowFromApi(targetUserId);
+  return response.following;
 }

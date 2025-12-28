@@ -10,7 +10,9 @@ import {
   fetchUserReviews,
   getFollowers,
   getFollowing,
+  getFollowStatus,
   getProfileSummary,
+  toggleFollow,
 } from "../services/profileService";
 import {
   updateMyBio,
@@ -72,6 +74,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     useState<CursorPage<FollowUser> | null>(null);
   const [isFollowersLoading, setIsFollowersLoading] = useState(false);
   const [isFollowingLoading, setIsFollowingLoading] = useState(false);
+  const [isFollowActionLoading, setIsFollowActionLoading] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
@@ -100,6 +103,33 @@ export default function ProfileView({ userId }: ProfileViewProps) {
 
     void loadProfile();
   }, [userId]);
+
+  useEffect(() => {
+    if (isOwner || !currentUserId) {
+      setIsFollowing(false);
+      return;
+    }
+
+    let isActive = true;
+    const loadFollowStatus = async () => {
+      try {
+        const following = await getFollowStatus(userId);
+        if (isActive) {
+          setIsFollowing(following);
+        }
+      } catch {
+        if (isActive) {
+          setIsFollowing(false);
+        }
+      }
+    };
+
+    void loadFollowStatus();
+
+    return () => {
+      isActive = false;
+    };
+  }, [currentUserId, isOwner, userId]);
 
   useEffect(() => {
     const loadReadingBooks = async () => {
@@ -347,6 +377,40 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     setIsFollowingLoading(false);
   };
 
+  const handleToggleFollow = async () => {
+    if (isFollowActionLoading || !currentUserId) {
+      return;
+    }
+
+    setIsFollowActionLoading(true);
+    const wasFollowing = isFollowing;
+    try {
+      const nextFollowing = await toggleFollow(userId);
+      setIsFollowing(nextFollowing);
+      setProfileSummary((prev) => {
+        if (!prev || !prev.stats) {
+          return prev;
+        }
+        if (nextFollowing === wasFollowing) {
+          return prev;
+        }
+        const nextFollowers = Math.max(
+          0,
+          prev.stats.followers + (nextFollowing ? 1 : -1),
+        );
+        return {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            followers: nextFollowers,
+          },
+        };
+      });
+    } finally {
+      setIsFollowActionLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (modalOpen === "followers") {
       void loadFollowers(null);
@@ -393,14 +457,19 @@ export default function ProfileView({ userId }: ProfileViewProps) {
               </button>
             ) : (
               <button
-                className={`rounded-full px-5 py-2 text-sm font-semibold shadow-md transition hover:-translate-y-0.5 ${
+                className={`rounded-full px-5 py-2 text-sm font-semibold shadow-md transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 ${
                   isFollowing
                     ? "border border-[var(--border)] bg-white text-[var(--ink)]"
                     : "bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
                 }`}
-                onClick={() => setIsFollowing((prev) => !prev)}
+                onClick={handleToggleFollow}
+                disabled={isFollowActionLoading || !currentUserId}
               >
-                {isFollowing ? "팔로잉" : "팔로우"}
+                {isFollowActionLoading
+                  ? "처리 중"
+                  : isFollowing
+                    ? "팔로잉"
+                    : "팔로우"}
               </button>
             )}
           </div>
@@ -504,14 +573,19 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                 ) : (
                   <>
                     <button
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
                         isFollowing
                           ? "border border-[var(--border)] bg-white text-[var(--ink)]"
                           : "bg-[var(--ink)] text-white"
                       }`}
-                      onClick={() => setIsFollowing((prev) => !prev)}
+                      onClick={handleToggleFollow}
+                      disabled={isFollowActionLoading || !currentUserId}
                     >
-                      {isFollowing ? "팔로잉" : "팔로우"}
+                      {isFollowActionLoading
+                        ? "처리 중"
+                        : isFollowing
+                          ? "팔로잉"
+                          : "팔로우"}
                     </button>
                     <button className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-[var(--ink)]">
                       메시지

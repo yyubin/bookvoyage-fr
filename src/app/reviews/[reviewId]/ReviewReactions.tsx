@@ -1,6 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../components/AuthProvider";
+import {
+  deleteReaction,
+  upsertReaction,
+} from "../../services/reviewReactionService";
 
 type ReactionItem = {
   emoji: string;
@@ -41,12 +47,20 @@ const EMOJI_POOL = [
   "🎬",
 ] as const;
 
-export default function ReviewReactions() {
+type ReviewReactionsProps = {
+  reviewId: number | string;
+};
+
+export default function ReviewReactions({ reviewId }: ReviewReactionsProps) {
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
   const [reactions, setReactions] = useState<ReactionItem[]>([]);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [isReactionSaving, setIsReactionSaving] = useState(false);
 
   const filteredEmojis = useMemo(() => {
     if (!search.trim()) {
@@ -55,24 +69,90 @@ export default function ReviewReactions() {
     return EMOJI_POOL.filter((emoji) => emoji.includes(search.trim()));
   }, [search]);
 
-  const toggleReaction = (emoji: string) => {
+  const updateReactionState = (emoji: string, nextSelected: boolean) => {
     setReactions((prev) => {
       const existing = prev.find((item) => item.emoji === emoji);
-      if (!existing) {
+      if (!existing && nextSelected) {
         return [...prev, { emoji, count: 1, selected: true }];
       }
-      return prev.map((item) => {
-        if (item.emoji !== emoji) {
-          return item;
-        }
-        const nextSelected = !item.selected;
-        return {
-          ...item,
-          selected: nextSelected,
-          count: Math.max(0, item.count + (nextSelected ? 1 : -1)),
-        };
-      });
+      return prev
+        .map((item) => {
+          if (item.emoji !== emoji) {
+            return item;
+          }
+          const nextCount = Math.max(0, item.count + (nextSelected ? 1 : -1));
+          return {
+            ...item,
+            selected: nextSelected,
+            count: nextCount,
+          };
+        })
+        .filter((item) => item.count > 0 || item.selected);
     });
+  };
+
+  const replaceSelectedReaction = (nextEmoji: string) => {
+    setReactions((prev) => {
+      const nextItems = prev.map((item) => {
+        if (item.emoji === selectedEmoji) {
+          return {
+            ...item,
+            selected: false,
+            count: Math.max(0, item.count - 1),
+          };
+        }
+        if (item.emoji === nextEmoji) {
+          return {
+            ...item,
+            selected: true,
+            count: item.count + 1,
+          };
+        }
+        return item;
+      });
+
+      if (!nextItems.some((item) => item.emoji === nextEmoji)) {
+        nextItems.push({ emoji: nextEmoji, count: 1, selected: true });
+      }
+
+      return nextItems.filter((item) => item.count > 0 || item.selected);
+    });
+  };
+
+  const ensureSignedIn = () => {
+    if (isLoading) {
+      return false;
+    }
+    if (!user) {
+      router.push(`/auth?redirect=/reviews/${reviewId}`);
+      return false;
+    }
+    return true;
+  };
+
+  const toggleReaction = async (emoji: string) => {
+    if (!ensureSignedIn() || isReactionSaving) {
+      return;
+    }
+
+    setIsReactionSaving(true);
+    try {
+      if (selectedEmoji === emoji) {
+        await deleteReaction(reviewId);
+        updateReactionState(emoji, false);
+        setSelectedEmoji(null);
+      } else {
+        await upsertReaction(reviewId, emoji);
+        if (selectedEmoji) {
+          replaceSelectedReaction(emoji);
+        } else {
+          updateReactionState(emoji, true);
+        }
+        setSelectedEmoji(emoji);
+      }
+    } finally {
+      setIsReactionSaving(false);
+    }
   };
 
   return (
@@ -108,7 +188,8 @@ export default function ReviewReactions() {
             key={reaction.emoji}
             type="button"
             onClick={() => toggleReaction(reaction.emoji)}
-            className={`inline-flex items-center gap-1 rounded-full border border-[var(--border)] px-3 py-2 transition ${
+            disabled={isReactionSaving}
+            className={`inline-flex items-center gap-1 rounded-full border border-[var(--border)] px-3 py-2 transition disabled:cursor-not-allowed disabled:opacity-60 ${
               reaction.selected
                 ? "bg-[var(--paper-strong)] text-[var(--ink)]"
                 : "bg-white text-[var(--muted)] hover:border-transparent hover:bg-[var(--paper-strong)]"
@@ -150,7 +231,8 @@ export default function ReviewReactions() {
                     key={emoji}
                     type="button"
                     onClick={() => toggleReaction(emoji)}
-                    className="rounded-full border border-transparent p-2 transition hover:bg-[var(--paper-strong)]"
+                    disabled={isReactionSaving}
+                    className="rounded-full border border-transparent p-2 transition hover:bg-[var(--paper-strong)] disabled:cursor-not-allowed disabled:opacity-60"
                     aria-label={`${emoji} 리액션`}
                   >
                     {emoji}
