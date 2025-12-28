@@ -1,11 +1,10 @@
 import Link from "next/link";
-import BookPicks from "./components/BookPicks";
+import BookRecommendationSection from "./components/BookRecommendationSection";
 import AuthButtons from "./components/AuthButtons";
 import AuthReviewButton from "./components/AuthReviewButton";
 import ReviewFeed from "./components/ReviewFeed";
 import SearchBar from "./components/SearchBar";
 import LogoMark from "./components/LogoMark";
-import { getBooks } from "./services/bookService";
 import { getReviews } from "./services/reviewService";
 
 const carouselPicks = [
@@ -17,10 +16,7 @@ const carouselPicks = [
 ];
 
 export default async function Home() {
-  const [bookPage, reviewPage] = await Promise.all([
-    getBooks({ cursor: null, limit: 3 }),
-    getReviews({ cursor: null, limit: 4 }),
-  ]);
+  const reviewPage = await getReviews({ cursor: null, limit: 4 });
 
   return (
     <div className="paper-texture min-h-screen">
@@ -119,21 +115,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="fade-up-delay mt-12">
-          <div className="flex items-center justify-between gap-4">
-            <h3 className="font-serif text-2xl font-semibold">책 추천</h3>
-            <Link
-              href="/books/recommendations"
-              className="text-sm font-semibold text-[var(--accent)]"
-            >
-              추천 전체 보기
-            </Link>
-          </div>
-          <BookPicks
-            initialItems={bookPage.items}
-            initialCursor={bookPage.nextCursor}
-          />
-        </section>
+        <BookRecommendationSection />
 
         <div className="mt-12 grid gap-8 lg:grid-cols-[1.4fr_0.6fr]">
           <section className="space-y-6">

@@ -8,7 +8,7 @@ import type { BookReviewItem } from "../../../types/content";
 type BookReviewListProps = {
   bookId: number;
   initialReviews: BookReviewItem[];
-  initialCursor: string | number | null;
+  initialCursor: number | null;
   totalCount: number;
 };
 

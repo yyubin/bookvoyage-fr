@@ -110,6 +110,30 @@ export type BookSearchPage = {
   totalItems: number;
 };
 
+export type BookRecommendationItem = {
+  bookId: number;
+  title: string;
+  authors: string[];
+  isbn10: string | null;
+  isbn13: string | null;
+  coverUrl: string | null;
+  publisher: string | null;
+  publishedDate: string | null;
+  description: string | null;
+  language: string | null;
+  pageCount: number | null;
+  googleVolumeId: string | null;
+  score: number | null;
+  rank: number | null;
+  source: string | null;
+  reason: string | null;
+};
+
+export type BookRecommendationResponse = {
+  items: BookRecommendationItem[];
+  totalItems: number;
+};
+
 export type ReviewSearchItem = {
   reviewId: number;
   bookId?: number;
