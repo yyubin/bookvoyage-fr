@@ -88,7 +88,8 @@ export default function BookReviewList({
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-[var(--ink)]">
-                    user-{review.userId}
+                    {review.authorNickname ??
+                      (review.userId ? `user-${review.userId}` : "리뷰어")}
                   </p>
                   {typeof review.rating === "number" ? (
                     <p className="text-xs text-[var(--muted)]">
@@ -119,7 +120,7 @@ export default function BookReviewList({
                     좋아요 {review.likeCount}
                   </span>
                 ) : null}
-                {typeof review.commentCount === "number" ? (
+                {review.commentCount ? (
                   <span className="rounded-full border border-[var(--border)] bg-white px-2 py-1">
                     댓글 {review.commentCount}
                   </span>

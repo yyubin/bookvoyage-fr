@@ -93,8 +93,9 @@ export type BookReviewItem = {
   content: string | null;
   createdAt: string | null;
   likeCount: string | null;
-  commentCount: number | null;
+  commentCount: string | null;
   viewCount: string | null;
+  authorNickname?: string | null;
 };
 
 export type BookReviewPageResponse = {
