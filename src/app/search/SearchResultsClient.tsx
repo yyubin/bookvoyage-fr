@@ -142,10 +142,12 @@ export default function SearchResultsClient({
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-[var(--ink)]">
-                    {review.title ?? "리뷰 제목"}
+                    {review.bookTitle ?? "책 제목"}
                   </p>
                   <p className="text-xs text-[var(--muted)]">
-                    {(review.authors ?? []).join(", ")}
+                    {review.authorNickname ??
+                      (review.userId ? `user-${review.userId}` : "리뷰어")}
+                    {review.createdAt ? ` · ${review.createdAt}` : ""}
                   </p>
                 </div>
                 <span className="text-xs text-[var(--muted)]">

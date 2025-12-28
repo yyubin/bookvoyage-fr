@@ -207,6 +207,8 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
               initialBookmarked={review.bookmarked}
               initialReactions={review.reactions}
               initialUserReaction={review.userReaction}
+              initialLiked={review.isLiked}
+              initialLikeCount={review.likeCount}
             />
 
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--muted)]">

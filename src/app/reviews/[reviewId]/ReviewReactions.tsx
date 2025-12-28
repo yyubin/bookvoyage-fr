@@ -11,6 +11,7 @@ import {
   addBookmark,
   removeBookmark,
 } from "../../services/bookmarkService";
+import { toggleReviewLike } from "../../services/reviewLikeService";
 
 type ReactionItem = {
   emoji: string;
@@ -56,6 +57,8 @@ type ReviewReactionsProps = {
   initialBookmarked?: boolean;
   initialReactions?: { emoji: string; count: number }[];
   initialUserReaction?: string | null;
+  initialLiked?: boolean;
+  initialLikeCount?: number;
 };
 
 export default function ReviewReactions({
@@ -63,6 +66,8 @@ export default function ReviewReactions({
   initialBookmarked,
   initialReactions,
   initialUserReaction,
+  initialLiked,
+  initialLikeCount,
 }: ReviewReactionsProps) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
@@ -74,13 +79,15 @@ export default function ReviewReactions({
   );
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(initialLiked ?? false);
+  const [likeCount, setLikeCount] = useState(initialLikeCount ?? 0);
   const [bookmarked, setBookmarked] = useState(initialBookmarked ?? false);
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(
     initialUserReaction ?? null,
   );
   const [isReactionSaving, setIsReactionSaving] = useState(false);
   const [isBookmarkSaving, setIsBookmarkSaving] = useState(false);
+  const [isLikeSaving, setIsLikeSaving] = useState(false);
 
   const filteredEmojis = useMemo(() => {
     if (!search.trim()) {
@@ -175,6 +182,21 @@ export default function ReviewReactions({
     }
   };
 
+  const toggleLike = async () => {
+    if (!ensureSignedIn() || isLikeSaving) {
+      return;
+    }
+
+    setIsLikeSaving(true);
+    try {
+      const result = await toggleReviewLike(reviewId);
+      setLiked(result.isLiked);
+      setLikeCount(result.likeCount);
+    } finally {
+      setIsLikeSaving(false);
+    }
+  };
+
   const toggleBookmark = async () => {
     if (!ensureSignedIn() || isBookmarkSaving) {
       return;
@@ -198,7 +220,8 @@ export default function ReviewReactions({
     <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-semibold">
       <button
         type="button"
-        onClick={() => setLiked((prev) => !prev)}
+        onClick={toggleLike}
+        disabled={isLikeSaving}
         className={`inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 transition ${
           liked
             ? "bg-[var(--ink)] text-white"
@@ -206,7 +229,7 @@ export default function ReviewReactions({
         }`}
       >
         <span aria-hidden="true">{liked ? "♥" : "♡"}</span>
-        좋아요
+        좋아요 {likeCount}
       </button>
       <button
         type="button"

@@ -112,16 +112,14 @@ export type BookSearchPage = {
 export type ReviewSearchItem = {
   reviewId: number;
   bookId?: number;
+  bookTitle?: string | null;
   userId?: number;
-  title?: string;
-  authors?: string[];
-  coverUrl?: string | null;
+  authorNickname?: string | null;
   summary: string;
   highlights: string[];
   keywords: string[];
   rating: number | null;
   createdAt: string;
-  authorNickname?: string;
 };
 
 export type ReviewSearchPage = {
@@ -222,6 +220,8 @@ export type ReviewResponse = {
     count: number;
   }[];
   userReaction: string | null;
+  isLiked: boolean;
+  likeCount: number;
 };
 
 export type CommentResponse = {
