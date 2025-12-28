@@ -1,14 +1,8 @@
 import Link from "next/link";
 import AuthButtons from "../../components/AuthButtons";
 import LogoMark from "../../components/LogoMark";
-import { getBooks } from "../../services/bookService";
-import type { BookItem } from "../../types/content";
-
-const coverToneStyles: Record<BookItem["coverTone"], string> = {
-  warm: "from-[#f5d7bf] via-[#ebb488] to-[#c7794b]",
-  sunset: "from-[#f6c4a1] via-[#eb8d74] to-[#bf4c3f]",
-  forest: "from-[#cfe1c5] via-[#8fb09a] to-[#4e6d62]",
-};
+import RecommendationList from "./RecommendationList";
+import { getBookRecommendationsServer } from "../../services/recommendationServerService";
 
 const curatorNotes = [
   {
@@ -26,12 +20,16 @@ const curatorNotes = [
 ];
 
 export default async function BookRecommendationsPage() {
-  const bookPage = await getBooks({ cursor: null, limit: 200 });
-  const books = bookPage.items;
-  const tags = Array.from(new Set(books.flatMap((book) => book.tags))).slice(
-    0,
-    10,
-  );
+  const { response, status } = await getBookRecommendationsServer(20);
+  const isSignedIn = status !== 401;
+  const items = response.items;
+  const tags = Array.from(
+    new Set(
+      items
+        .flatMap((book) => [book.source, book.reason])
+        .filter((value): value is string => Boolean(value)),
+    ),
+  ).slice(0, 10);
 
   return (
     <div className="paper-texture min-h-screen">
@@ -78,15 +76,20 @@ export default async function BookRecommendationsPage() {
               마음이 끌리는 키워드를 선택해 책을 골라보세요.
             </p>
             <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-[var(--ink)]">
-              {tags.map((tag) => (
-                <Link
-                  key={`tag-${tag}`}
-                  href={`/search?q=${encodeURIComponent(`#${tag}`)}`}
-                  className="rounded-full border border-[var(--border)] bg-white px-3 py-2 transition hover:border-transparent hover:bg-[var(--paper-strong)]"
-                >
-                  #{tag}
-                </Link>
-              ))}
+              {tags.length > 0 ? (
+                tags.map((tag) => (
+                  <span
+                    key={`tag-${tag}`}
+                    className="rounded-full border border-[var(--border)] bg-white px-3 py-2"
+                  >
+                    {tag}
+                  </span>
+                ))
+              ) : (
+                <span className="rounded-full border border-[var(--border)] bg-white px-3 py-2">
+                  취향 기반 추천
+                </span>
+              )}
             </div>
           </div>
 
@@ -133,41 +136,10 @@ export default async function BookRecommendationsPage() {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {books.map((book) => (
-              <Link
-                key={book.id}
-                href={`/books/${book.slug}`}
-                className="group rounded-[28px] border border-[var(--border)] bg-white/85 p-5 shadow-[var(--shadow)] transition hover:-translate-y-1 hover:shadow-md"
-              >
-                <div
-                  className={`h-36 w-full rounded-[24px] bg-gradient-to-br ${coverToneStyles[book.coverTone]} shadow-inner`}
-                />
-                <div className="mt-5">
-                  <p className="text-sm font-semibold text-[var(--ink)]">
-                    {book.title}
-                  </p>
-                  <p className="text-xs text-[var(--muted)]">{book.author}</p>
-                  <p className="mt-3 text-xs text-[var(--muted)]">
-                    {book.description}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-semibold text-[var(--muted)]">
-                    {book.tags.map((tag) => (
-                      <span
-                        key={`${book.slug}-${tag}`}
-                        className="rounded-full border border-[var(--border)] bg-white px-2 py-1"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <span className="mt-4 inline-flex text-xs font-semibold text-[var(--accent)]">
-                  책 상세 보기
-                </span>
-              </Link>
-            ))}
-          </div>
+          <RecommendationList
+            initialItems={items}
+            isSignedIn={isSignedIn}
+          />
         </section>
       </div>
     </div>

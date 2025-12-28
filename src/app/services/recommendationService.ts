@@ -1,41 +1,16 @@
-import { headers } from "next/headers";
-import { API_BASE_URL } from "./authService";
 import type { BookRecommendationResponse } from "../types/content";
+import { apiFetchJson } from "./apiClient";
 
-export type RecommendationResult = {
-  response: BookRecommendationResponse;
-  status: number;
-};
-
-export async function getBookRecommendationsServer(
-  limit = 12,
+export async function getBookRecommendations(
+  limit = 20,
   forceRefresh = false,
-): Promise<RecommendationResult> {
+): Promise<BookRecommendationResponse> {
   const params = new URLSearchParams({ limit: String(limit) });
   if (forceRefresh) {
     params.set("forceRefresh", "true");
   }
 
-  const cookieHeader = (await headers()).get("cookie");
-  const response = await fetch(
-    `${API_BASE_URL}/api/recommendations/books?${params.toString()}`,
-    {
-      headers: cookieHeader ? { cookie: cookieHeader } : undefined,
-      cache: "no-store",
-    },
+  return apiFetchJson<BookRecommendationResponse>(
+    `/api/recommendations/books?${params.toString()}`,
   );
-
-  if (!response.ok) {
-    return { response: { items: [], totalItems: 0 }, status: response.status };
-  }
-
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
-    return { response: { items: [], totalItems: 0 }, status: response.status };
-  }
-
-  return {
-    response: (await response.json()) as BookRecommendationResponse,
-    status: 200,
-  };
 }

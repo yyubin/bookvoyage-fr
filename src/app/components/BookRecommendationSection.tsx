@@ -1,6 +1,6 @@
 import Link from "next/link";
 import BookRecommendationCarousel from "./BookRecommendationCarousel";
-import { getBookRecommendationsServer } from "../services/recommendationService";
+import { getBookRecommendationsServer } from "../services/recommendationServerService";
 
 export default async function BookRecommendationSection() {
   const { response, status } = await getBookRecommendationsServer(12);
