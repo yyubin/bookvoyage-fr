@@ -7,6 +7,10 @@ import {
   deleteReaction,
   upsertReaction,
 } from "../../services/reviewReactionService";
+import {
+  addBookmark,
+  removeBookmark,
+} from "../../services/bookmarkService";
 
 type ReactionItem = {
   emoji: string;
@@ -49,18 +53,34 @@ const EMOJI_POOL = [
 
 type ReviewReactionsProps = {
   reviewId: number | string;
+  initialBookmarked?: boolean;
+  initialReactions?: { emoji: string; count: number }[];
+  initialUserReaction?: string | null;
 };
 
-export default function ReviewReactions({ reviewId }: ReviewReactionsProps) {
+export default function ReviewReactions({
+  reviewId,
+  initialBookmarked,
+  initialReactions,
+  initialUserReaction,
+}: ReviewReactionsProps) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
-  const [reactions, setReactions] = useState<ReactionItem[]>([]);
+  const [reactions, setReactions] = useState<ReactionItem[]>(
+    (initialReactions ?? []).map((item) => ({
+      ...item,
+      selected: item.emoji === initialUserReaction,
+    })),
+  );
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [liked, setLiked] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [bookmarked, setBookmarked] = useState(initialBookmarked ?? false);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(
+    initialUserReaction ?? null,
+  );
   const [isReactionSaving, setIsReactionSaving] = useState(false);
+  const [isBookmarkSaving, setIsBookmarkSaving] = useState(false);
 
   const filteredEmojis = useMemo(() => {
     if (!search.trim()) {
@@ -155,6 +175,25 @@ export default function ReviewReactions({ reviewId }: ReviewReactionsProps) {
     }
   };
 
+  const toggleBookmark = async () => {
+    if (!ensureSignedIn() || isBookmarkSaving) {
+      return;
+    }
+
+    setIsBookmarkSaving(true);
+    try {
+      if (bookmarked) {
+        await removeBookmark(reviewId);
+        setBookmarked(false);
+      } else {
+        await addBookmark(reviewId);
+        setBookmarked(true);
+      }
+    } finally {
+      setIsBookmarkSaving(false);
+    }
+  };
+
   return (
     <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-semibold">
       <button
@@ -171,7 +210,8 @@ export default function ReviewReactions({ reviewId }: ReviewReactionsProps) {
       </button>
       <button
         type="button"
-        onClick={() => setBookmarked((prev) => !prev)}
+        onClick={toggleBookmark}
+        disabled={isBookmarkSaving}
         className={`inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 transition ${
           bookmarked
             ? "bg-[var(--accent)] text-white"

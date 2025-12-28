@@ -64,6 +64,45 @@ export type BookSearchItem = {
   googleVolumeId: string | null;
 };
 
+export type BookStats = {
+  reviewCount: number;
+  avgRating: number | null;
+};
+
+export type BookDetailResponse = {
+  bookId: number;
+  title: string;
+  authors: string[];
+  isbn10: string | null;
+  isbn13: string | null;
+  coverUrl: string | null;
+  publisher: string | null;
+  description: string | null;
+  googleVolumeId: string | null;
+  publishedDate?: string | null;
+  language?: string | null;
+  pageCount?: number | null;
+  stats: BookStats;
+};
+
+export type BookReviewItem = {
+  reviewId: number;
+  userId: number;
+  title: string;
+  rating: number | null;
+  content: string | null;
+  createdAt: string | null;
+  likeCount: string | null;
+  commentCount: number | null;
+  viewCount: string | null;
+};
+
+export type BookReviewPageResponse = {
+  reviews: BookReviewItem[];
+  nextCursor: number | null;
+  totalCount: number;
+};
+
 export type BookSearchPage = {
   items: BookSearchItem[];
   nextStartIndex: number | null;
@@ -177,22 +216,31 @@ export type ReviewResponse = {
   keywords: string[];
   highlights: string[];
   mentions?: unknown[];
+  bookmarked: boolean;
+  reactions: {
+    emoji: string;
+    count: number;
+  }[];
+  userReaction: string | null;
 };
 
 export type CommentResponse = {
   commentId: number;
   reviewId: number;
   userId: number;
+  authorNickname: string | null;
   content: string;
   parentCommentId: number | null;
   createdAt: string;
   editedAt: string | null;
   mentions: unknown[];
+  replyCount: number;
 };
 
 export type CommentPageResponse = {
   comments: CommentResponse[];
   nextCursor: number | null;
+  totalCount: number;
 };
 
 export type ProfileSummary = {

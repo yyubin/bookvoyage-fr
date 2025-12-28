@@ -1,8 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { createComment, getCommentsByReview } from "../../services/commentService";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  createComment,
+  deleteComment,
+  getCommentsByReview,
+  getRepliesByComment,
+  updateComment,
+} from "../../services/commentService";
 import type { CommentResponse } from "../../types/content";
 
 type CommentModalTriggerProps = {
@@ -10,6 +16,7 @@ type CommentModalTriggerProps = {
   commentsCount: number;
   initialComments: CommentResponse[];
   initialCursor: number | null;
+  viewerId?: number | null;
 };
 
 export default function CommentModalTrigger({
@@ -17,14 +24,84 @@ export default function CommentModalTrigger({
   commentsCount,
   initialComments,
   initialCursor,
+  viewerId,
 }: CommentModalTriggerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [comments, setComments] = useState(initialComments);
   const [nextCursor, setNextCursor] = useState(initialCursor);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [activeReplyId, setActiveReplyId] = useState<number | null>(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [totalCount, setTotalCount] = useState(commentsCount);
+  const [repliesByParent, setRepliesByParent] = useState<
+    Record<
+      number,
+      { items: CommentResponse[]; nextCursor: number | null; totalCount: number }
+    >
+  >({});
+  const [loadingReplies, setLoadingReplies] = useState<Set<number>>(
+    () => new Set(),
+  );
+  const [expandedReplies, setExpandedReplies] = useState<Set<number>>(
+    () => new Set(),
+  );
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const { rootComments } = useMemo(() => {
+    const roots: CommentResponse[] = [];
+    comments.forEach((comment) => {
+      if (!comment.parentCommentId) {
+        roots.push(comment);
+      }
+    });
+    return { rootComments: roots };
+  }, [comments]);
+
+  const refreshComments = async () => {
+    const page = await getCommentsByReview(reviewId, {
+      cursor: null,
+      limit: 8,
+    });
+    setComments(page.comments);
+    setNextCursor(page.nextCursor);
+    setTotalCount(page.totalCount);
+  };
+
+  const loadReplies = async (commentId: number, cursor: number | null) => {
+    if (loadingReplies.has(commentId)) {
+      return;
+    }
+    setLoadingReplies((prev) => new Set(prev).add(commentId));
+    try {
+      const page = await getRepliesByComment(commentId, {
+        cursor,
+        limit: 8,
+      });
+      setRepliesByParent((prev) => {
+        const existing = prev[commentId];
+        const items = existing ? [...existing.items, ...page.comments] : page.comments;
+        return {
+          ...prev,
+          [commentId]: {
+            items,
+            nextCursor: page.nextCursor,
+            totalCount: page.totalCount,
+          },
+        };
+      });
+    } finally {
+      setLoadingReplies((prev) => {
+        const next = new Set(prev);
+        next.delete(commentId);
+        return next;
+      });
+    }
+  };
 
   const loadMore = async () => {
     if (!nextCursor || isLoading) {
@@ -47,12 +124,7 @@ export default function CommentModalTrigger({
 
     const refresh = async () => {
       setIsLoading(true);
-      const page = await getCommentsByReview(reviewId, {
-        cursor: null,
-        limit: 8,
-      });
-      setComments(page.comments);
-      setNextCursor(page.nextCursor);
+      await refreshComments();
       setIsLoading(false);
     };
 
@@ -85,6 +157,245 @@ export default function CommentModalTrigger({
     };
   }, [isOpen, nextCursor]);
 
+  const renderComment = (comment: CommentResponse, depth = 0) => {
+    const isOwner =
+      viewerId !== undefined && viewerId !== null && comment.userId === viewerId;
+    const isExpanded = expandedReplies.has(comment.commentId);
+    const replyState = repliesByParent[comment.commentId];
+    const loadedReplies = replyState?.items ?? [];
+    const repliesNextCursor = replyState?.nextCursor ?? null;
+    const repliesTotal = replyState?.totalCount ?? comment.replyCount;
+    const hasReplies = repliesTotal > 0;
+    const isReplyLoading = loadingReplies.has(comment.commentId);
+
+    return (
+      <div
+        key={comment.commentId}
+        className={`rounded-2xl border border-[var(--border)] bg-white px-4 py-3 ${depth > 0 ? "ml-6 border-dashed" : ""}`}
+      >
+        <div className="flex items-center justify-between text-xs text-[var(--muted)]">
+          <Link
+            href={`/profile/${comment.userId}`}
+            className="font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
+          >
+            {comment.authorNickname ?? `user-${comment.userId}`}
+          </Link>
+          <div className="flex items-center gap-2">
+            <span>{comment.createdAt}</span>
+            {isOwner ? (
+              <div className="flex items-center gap-1 text-[10px] text-[var(--muted)]">
+                <button
+                  type="button"
+                  className="rounded-full border border-[var(--border)] px-2 py-0.5 transition hover:border-transparent hover:bg-[var(--paper-strong)]"
+                  onClick={() => {
+                    setEditingCommentId(comment.commentId);
+                    setEditContent(comment.content);
+                  }}
+                >
+                  수정
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full border border-[var(--border)] px-2 py-0.5 transition hover:border-transparent hover:bg-[var(--paper-strong)]"
+                  onClick={async () => {
+                    if (isSubmitting) {
+                      return;
+                    }
+                    if (!window.confirm("댓글을 삭제할까요?")) {
+                      return;
+                    }
+                    const parentId = comment.parentCommentId;
+                    setIsSubmitting(true);
+                    setSubmitError(null);
+                    try {
+                      await deleteComment(comment.commentId);
+                      await refreshComments();
+                      if (parentId && expandedReplies.has(parentId)) {
+                        setRepliesByParent((prev) => {
+                          const next = { ...prev };
+                          delete next[parentId];
+                          return next;
+                        });
+                        void loadReplies(parentId, null);
+                      }
+                    } catch {
+                      setSubmitError("댓글 삭제에 실패했어요.");
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                >
+                  삭제
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {editingCommentId === comment.commentId ? (
+          <div className="mt-3">
+            <textarea
+              value={editContent}
+              onChange={(event) => setEditContent(event.target.value)}
+              className="h-24 w-full resize-none rounded-2xl border border-[var(--border)] bg-white/90 px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+            />
+            <div className="mt-2 flex justify-end gap-2 text-xs">
+              <button
+                type="button"
+                className="rounded-full border border-[var(--border)] px-3 py-1"
+                onClick={() => {
+                  setEditingCommentId(null);
+                  setEditContent("");
+                }}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className="rounded-full bg-[var(--ink)] px-3 py-1 font-semibold text-white"
+                onClick={async () => {
+                  if (!editContent.trim() || isSubmitting) {
+                    return;
+                  }
+                  setIsSubmitting(true);
+                  setSubmitError(null);
+                  try {
+                    await updateComment(comment.commentId, editContent.trim());
+                    setEditingCommentId(null);
+                    setEditContent("");
+                    await refreshComments();
+                  } catch {
+                    setSubmitError("댓글 수정에 실패했어요.");
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-[var(--muted)]">{comment.content}</p>
+        )}
+
+        <div className="mt-2 flex items-center gap-2 text-xs text-[var(--muted)]">
+          <button
+            type="button"
+            className="rounded-full border border-[var(--border)] px-3 py-1 transition hover:border-transparent hover:bg-[var(--paper-strong)]"
+            onClick={() => {
+              setActiveReplyId((prev) =>
+                prev === comment.commentId ? null : comment.commentId,
+              );
+              setReplyContent("");
+            }}
+          >
+            답글
+          </button>
+          {hasReplies ? (
+            <button
+              type="button"
+              className="text-[11px] text-[var(--muted)] underline-offset-4 transition hover:text-[var(--ink)] hover:underline"
+              onClick={() => {
+                setExpandedReplies((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(comment.commentId)) {
+                    next.delete(comment.commentId);
+                  } else {
+                    next.add(comment.commentId);
+                  }
+                  return next;
+                });
+                if (!replyState) {
+                  void loadReplies(comment.commentId, null);
+                }
+              }}
+            >
+              {isExpanded ? "답글 숨기기" : `답글 ${repliesTotal}개`}
+            </button>
+          ) : null}
+        </div>
+
+        {activeReplyId === comment.commentId ? (
+          <div className="mt-3 rounded-2xl border border-[var(--border)] bg-white/90 px-4 py-3">
+            <textarea
+              value={replyContent}
+              onChange={(event) => setReplyContent(event.target.value)}
+              className="h-20 w-full resize-none bg-transparent text-sm text-[var(--ink)] outline-none"
+              placeholder="답글을 남겨보세요."
+            />
+            <div className="mt-2 flex justify-end gap-2 text-xs">
+              <button
+                type="button"
+                className="rounded-full border border-[var(--border)] px-3 py-1"
+                onClick={() => {
+                  setActiveReplyId(null);
+                  setReplyContent("");
+                }}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className="rounded-full bg-[var(--ink)] px-3 py-1 font-semibold text-white"
+                onClick={async () => {
+                  if (!replyContent.trim() || isSubmitting) {
+                    return;
+                  }
+                  setIsSubmitting(true);
+                  setSubmitError(null);
+                  try {
+                    await createComment(
+                      reviewId,
+                      replyContent.trim(),
+                      comment.commentId,
+                    );
+                    setActiveReplyId(null);
+                    setReplyContent("");
+                    await refreshComments();
+                    setRepliesByParent((prev) => {
+                      const next = { ...prev };
+                      delete next[comment.commentId];
+                      return next;
+                    });
+                    void loadReplies(comment.commentId, null);
+                  } catch {
+                    setSubmitError("답글 등록에 실패했어요.");
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+              >
+                답글 등록
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {isExpanded ? (
+          <div className="mt-3 space-y-3 border-l border-[var(--border)] pl-4">
+            {loadedReplies.map((reply) => renderComment(reply, depth + 1))}
+            {isReplyLoading && loadedReplies.length === 0 ? (
+              <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-xs text-[var(--muted)]">
+                답글을 불러오는 중...
+              </div>
+            ) : null}
+            {repliesNextCursor ? (
+              <button
+                type="button"
+                className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)] transition hover:border-transparent hover:bg-[var(--paper-strong)]"
+                onClick={() => void loadReplies(comment.commentId, repliesNextCursor)}
+                disabled={isReplyLoading}
+              >
+                {isReplyLoading ? "불러오는 중..." : "답글 더보기"}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
   return (
     <>
       <button
@@ -92,7 +403,7 @@ export default function CommentModalTrigger({
         onClick={() => setIsOpen(true)}
         type="button"
       >
-        댓글 {commentsCount}
+        댓글 {totalCount}
       </button>
 
       {isOpen ? (
@@ -103,7 +414,7 @@ export default function CommentModalTrigger({
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-[28px] border border-[var(--border)] bg-white p-6 shadow-[var(--shadow)]"
+            className="flex max-h-[80vh] w-full max-w-lg flex-col rounded-[28px] border border-[var(--border)] bg-white p-6 shadow-[var(--shadow)]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between gap-4">
@@ -116,26 +427,8 @@ export default function CommentModalTrigger({
                 닫기
               </button>
             </div>
-            <div className="mt-4 space-y-3 text-sm">
-              {comments.map((comment) => (
-                <div
-                  key={comment.commentId}
-                  className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3"
-                >
-                  <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-                    <Link
-                      href={`/profile/${comment.userId}`}
-                      className="font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
-                    >
-                      user-{comment.userId}
-                    </Link>
-                    <span>{comment.createdAt}</span>
-                  </div>
-                  <p className="mt-2 text-sm text-[var(--muted)]">
-                    {comment.content}
-                  </p>
-                </div>
-              ))}
+            <div className="mt-4 flex-1 space-y-3 overflow-y-auto pr-1 text-sm">
+              {rootComments.map((comment) => renderComment(comment))}
               {isLoading && comments.length === 0
                 ? Array.from({ length: 3 }).map((_, index) => (
                     <div
@@ -173,24 +466,19 @@ export default function CommentModalTrigger({
                 <button
                   className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-white"
                   onClick={async () => {
-                    if (!newComment.trim() || isLoading) {
+                    if (!newComment.trim() || isSubmitting) {
                       return;
                     }
-                    setIsLoading(true);
+                    setIsSubmitting(true);
                     setSubmitError(null);
                     try {
                       await createComment(reviewId, newComment.trim());
                       setNewComment("");
-                      const page = await getCommentsByReview(reviewId, {
-                        cursor: null,
-                        limit: 8,
-                      });
-                      setComments(page.comments);
-                      setNextCursor(page.nextCursor);
+                      await refreshComments();
                     } catch {
                       setSubmitError("댓글 등록에 실패했어요.");
                     } finally {
-                      setIsLoading(false);
+                      setIsSubmitting(false);
                     }
                   }}
                   type="button"

@@ -5,6 +5,8 @@ import LogoMark from "../../components/LogoMark";
 import { notFound, redirect } from "next/navigation";
 import { getServerUser } from "../../services/authServer";
 import { getReviewDetail } from "../../services/reviewDetailService";
+import { getReviewCommentsServer } from "../../services/commentServerService";
+import type { CommentResponse } from "../../types/content";
 import ReviewOwnerActions from "./ReviewOwnerActions";
 import ReviewReactions from "./ReviewReactions";
 import SpoilerToggle from "./SpoilerToggle";
@@ -32,6 +34,50 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
     viewerId !== undefined &&
     reviewerId !== undefined &&
     String(viewerId) === String(reviewerId);
+  const commentPage = await getReviewCommentsServer(review.reviewId, {
+    cursor: null,
+    size: 8,
+  });
+  const initialComments = commentPage.comments;
+  const commentsCount = commentPage.totalCount;
+  const rootComments: CommentResponse[] = [];
+  const repliesByParent = new Map<number, CommentResponse[]>();
+  initialComments.forEach((comment) => {
+    if (comment.parentCommentId) {
+      const existing = repliesByParent.get(comment.parentCommentId) ?? [];
+      existing.push(comment);
+      repliesByParent.set(comment.parentCommentId, existing);
+    } else {
+      rootComments.push(comment);
+    }
+  });
+
+  const renderComment = (comment: CommentResponse, depth = 0) => {
+    const replies = repliesByParent.get(comment.commentId) ?? [];
+
+    return (
+      <div
+        key={comment.commentId}
+        className={`rounded-2xl border border-[var(--border)] bg-white px-4 py-3 ${depth > 0 ? "ml-6 border-dashed" : ""}`}
+      >
+        <div className="flex items-center justify-between text-xs text-[var(--muted)]">
+          <Link
+            href={`/profile/${comment.userId}`}
+            className="font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
+          >
+            {comment.authorNickname ?? `user-${comment.userId}`}
+          </Link>
+          <span>{comment.createdAt}</span>
+        </div>
+        <p className="mt-2 text-sm text-[var(--muted)]">{comment.content}</p>
+        {replies.length > 0 ? (
+          <div className="mt-3 space-y-3 border-l border-[var(--border)] pl-4">
+            {replies.map((reply) => renderComment(reply, depth + 1))}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
 
   return (
     <div className="paper-texture min-h-screen">
@@ -77,9 +123,12 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
                 <p className="text-sm font-semibold text-[var(--muted)]">
                   {review.authors.join(", ")}
                 </p>
-                <h2 className="mt-2 font-serif text-3xl font-semibold text-[var(--ink)]">
+                <Link
+                  href={`/books/internal/${review.bookId}`}
+                  className="mt-2 inline-flex font-serif text-3xl font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
+                >
                   {review.title}
-                </h2>
+                </Link>
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--muted)]">
                   <span className="rounded-full bg-[var(--paper-strong)] px-3 py-1">
                     평점 {review.rating}
@@ -89,9 +138,10 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
                   </span>
                   <CommentModalTrigger
                     reviewId={review.reviewId}
-                    commentsCount={0}
-                    initialComments={[]}
-                    initialCursor={null}
+                    commentsCount={commentsCount}
+                    initialComments={initialComments}
+                    initialCursor={commentPage.nextCursor}
+                    viewerId={viewerId ?? null}
                   />
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
@@ -152,7 +202,12 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
               ))}
             </div>
 
-            <ReviewReactions reviewId={review.reviewId} />
+            <ReviewReactions
+              reviewId={review.reviewId}
+              initialBookmarked={review.bookmarked}
+              initialReactions={review.reactions}
+              initialUserReaction={review.userReaction}
+            />
 
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--muted)]">
               <span className="rounded-full border border-[var(--border)] bg-white px-3 py-1">
@@ -174,8 +229,14 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
 
             <div className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow)]">
               <h3 className="font-serif text-xl font-semibold">댓글</h3>
-              <div className="mt-4 rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-3 text-xs text-[var(--muted)]">
-                댓글 기능은 준비 중입니다.
+              <div className="mt-4 space-y-3 text-sm">
+                {rootComments.length > 0 ? (
+                  rootComments.map((comment) => renderComment(comment))
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-3 text-xs text-[var(--muted)]">
+                    아직 댓글이 없어요. 첫 댓글을 남겨주세요.
+                  </div>
+                )}
               </div>
             </div>
           </aside>
