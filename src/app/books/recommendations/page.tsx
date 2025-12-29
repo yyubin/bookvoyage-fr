@@ -20,7 +20,9 @@ const curatorNotes = [
 ];
 
 export default async function BookRecommendationsPage() {
-  const { response, status } = await getBookRecommendationsServer(20);
+  const { response, status } = await getBookRecommendationsServer({
+    limit: 20,
+  });
   const isSignedIn = status !== 401;
   const items = response.items;
   const tags = Array.from(

@@ -5,7 +5,7 @@ import AuthReviewButton from "./components/AuthReviewButton";
 import ReviewFeed from "./components/ReviewFeed";
 import SearchBar from "./components/SearchBar";
 import LogoMark from "./components/LogoMark";
-import { getReviews } from "./services/reviewService";
+import { getReviewRecommendationsServer } from "./services/recommendationServerService";
 
 const carouselPicks = [
   "잔잔한 몰입",
@@ -16,7 +16,9 @@ const carouselPicks = [
 ];
 
 export default async function Home() {
-  const reviewPage = await getReviews({ cursor: null, limit: 4 });
+  const { response: reviewPage } = await getReviewRecommendationsServer({
+    limit: 4,
+  });
 
   return (
     <div className="paper-texture min-h-screen">
@@ -136,6 +138,7 @@ export default async function Home() {
             <ReviewFeed
               initialItems={reviewPage.items}
               initialCursor={reviewPage.nextCursor}
+              initialHasMore={reviewPage.hasMore}
             />
           </section>
 

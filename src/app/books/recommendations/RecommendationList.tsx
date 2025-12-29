@@ -1,11 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import type { BookRecommendationItem } from "../../types/content";
-import { getBookRecommendations } from "../../services/recommendationService";
-
-const PAGE_SIZE = 20;
 
 type RecommendationListProps = {
   initialItems: BookRecommendationItem[];
@@ -16,12 +12,7 @@ export default function RecommendationList({
   initialItems,
   isSignedIn,
 }: RecommendationListProps) {
-  const [items, setItems] = useState(initialItems);
-  const [currentLimit, setCurrentLimit] = useState(
-    Math.max(initialItems.length, PAGE_SIZE),
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const items = initialItems;
 
   if (!isSignedIn) {
     return (
@@ -89,34 +80,6 @@ export default function RecommendationList({
           </Link>
         ))}
       </div>
-      {hasMore ? (
-        <div className="mt-6 flex justify-center">
-          <button
-            type="button"
-            className="rounded-full border border-[var(--border)] bg-white px-5 py-2 text-xs font-semibold text-[var(--muted)] transition hover:border-transparent hover:bg-[var(--paper-strong)]"
-            onClick={async () => {
-              if (isLoading) {
-                return;
-              }
-              setIsLoading(true);
-              const nextLimit = currentLimit + PAGE_SIZE;
-              try {
-                const result = await getBookRecommendations(nextLimit);
-                if (result.items.length <= items.length) {
-                  setHasMore(false);
-                } else {
-                  setItems(result.items);
-                  setCurrentLimit(nextLimit);
-                }
-              } finally {
-                setIsLoading(false);
-              }
-            }}
-          >
-            {isLoading ? "불러오는 중..." : "추천 더 보기"}
-          </button>
-        </div>
-      ) : null}
     </>
   );
 }

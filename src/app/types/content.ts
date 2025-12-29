@@ -132,6 +132,36 @@ export type BookRecommendationItem = {
 export type BookRecommendationResponse = {
   items: BookRecommendationItem[];
   totalItems: number;
+  nextCursor: number | null;
+  hasMore: boolean;
+};
+
+export type ReviewRecommendationItem = {
+  reviewId: number;
+  userId: number | null;
+  authorNickname: string | null;
+  bookId: number | null;
+  bookTitle: string | null;
+  bookCoverUrl: string | null;
+  summary: string | null;
+  content: string | null;
+  rating: number | null;
+  createdAt: string;
+  likeCount: number | null;
+  commentCount: number | null;
+  viewCount: number | null;
+  topReactions: { emoji: string; count: number }[];
+  score: number | null;
+  rank: number | null;
+  source: string | null;
+  reason: string | null;
+};
+
+export type ReviewRecommendationResponse = {
+  items: ReviewRecommendationItem[];
+  totalItems: number;
+  nextCursor: number | null;
+  hasMore: boolean;
 };
 
 export type ReviewSearchItem = {

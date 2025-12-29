@@ -3,7 +3,9 @@ import BookRecommendationCarousel from "./BookRecommendationCarousel";
 import { getBookRecommendationsServer } from "../services/recommendationServerService";
 
 export default async function BookRecommendationSection() {
-  const { response, status } = await getBookRecommendationsServer(12);
+  const { response, status } = await getBookRecommendationsServer({
+    limit: 12,
+  });
   const isSignedIn = status !== 401;
 
   return (
