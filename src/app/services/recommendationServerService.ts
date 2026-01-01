@@ -19,6 +19,7 @@ type BookRecommendationQuery = {
   cursor?: number | null;
   limit?: number;
   forceRefresh?: boolean;
+  enableSampling?: boolean;
 };
 
 type ReviewRecommendationQuery = {
@@ -30,7 +31,12 @@ type ReviewRecommendationQuery = {
 export async function getBookRecommendationsServer(
   query: BookRecommendationQuery = {},
 ): Promise<RecommendationResult> {
-  const { cursor, limit = 12, forceRefresh = false } = query;
+  const {
+    cursor,
+    limit = 12,
+    forceRefresh = false,
+    enableSampling = true,
+  } = query;
   const params = new URLSearchParams({ limit: String(limit) });
   if (cursor !== undefined && cursor !== null) {
     params.set("cursor", String(cursor));
@@ -38,6 +44,7 @@ export async function getBookRecommendationsServer(
   if (forceRefresh) {
     params.set("forceRefresh", "true");
   }
+  params.set("enableSampling", String(enableSampling));
 
   const cookieHeader = (await headers()).get("cookie");
   const response = await fetch(
