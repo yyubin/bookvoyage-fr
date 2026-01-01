@@ -158,7 +158,7 @@ export default function SearchResultsClient({
                 {review.summary}
               </p>
               <div className="mt-3 flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-                {review.keywords.slice(0, 3).map((keyword) => (
+                {(review.keywords ?? []).slice(0, 3).map((keyword) => (
                   <span
                     key={`${review.reviewId}-${keyword}`}
                     className="rounded-full border border-[var(--border)] bg-white px-3 py-1"
