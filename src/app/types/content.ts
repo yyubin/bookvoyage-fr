@@ -182,6 +182,41 @@ export type ReviewSearchPage = {
   nextCursor: number | null;
 };
 
+export type CommunityTrendGenre = {
+  genre: string;
+  percentage: number;
+  mood: string;
+};
+
+export type CommunityTrendResponse = {
+  keywords: string[];
+  summary: string;
+  genres: CommunityTrendGenre[];
+  analyzedAt: string;
+};
+
+export type ShelfAdditionTrendBook = {
+  bookId: number | null;
+  title: string;
+  authors: string[];
+  coverUrl: string | null;
+};
+
+export type ShelfAdditionTrendItem = {
+  rank: number;
+  addedCount: number;
+  book: ShelfAdditionTrendBook;
+};
+
+export type ShelfAdditionTrendResponse = {
+  date: string;
+  timezone: string;
+  limit: number;
+  cacheHit: boolean;
+  generatedAt: string;
+  items: ShelfAdditionTrendItem[];
+};
+
 export type SearchResults = {
   query: string;
   books: BookSearchPage;

@@ -5,15 +5,9 @@ import AuthReviewButton from "./components/AuthReviewButton";
 import ReviewFeed from "./components/ReviewFeed";
 import SearchBar from "./components/SearchBar";
 import LogoMark from "./components/LogoMark";
+import CommunityTrendCard from "./components/CommunityTrendCard";
+import DailyPickCard from "./components/DailyPickCard";
 import { getReviewRecommendationsServer } from "./services/recommendationServerService";
-
-const carouselPicks = [
-  "잔잔한 몰입",
-  "도시의 빛이 있는 이야기",
-  "짧고 깊은 책",
-  "따뜻한 결말",
-  "가족을 닮은 관계",
-];
 
 export default async function Home() {
   const { response: reviewPage } = await getReviewRecommendationsServer({
@@ -78,42 +72,9 @@ export default async function Home() {
           </div>
 
           <div className="flex flex-col justify-between gap-6">
-            <div className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
-                데일리 픽
-              </p>
-              <h3 className="mt-3 font-serif text-2xl font-semibold">
-                오늘 가장 많이 읽히는 책
-              </h3>
-              <div className="mt-5 flex items-center gap-4">
-                <div className="h-20 w-14 rounded-2xl bg-gradient-to-br from-[#f4c7a1] via-[#f09c6b] to-[#d6633b] shadow-md" />
-                <div>
-                  <p className="text-sm font-semibold text-[var(--ink)]">
-                    레슨 인 케미스트리
-                  </p>
-                  <p className="text-xs text-[var(--muted)]">보니 가머스</p>
-                  <p className="mt-2 text-xs text-[var(--muted)]">
-                    현재 3.4k 리액션
-                  </p>
-                </div>
-              </div>
-            </div>
+            <DailyPickCard />
 
-            <div className="rounded-[28px] border border-[var(--border)] bg-white/80 p-6 shadow-[var(--shadow)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
-                지금의 독서 분위기
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-[var(--ink)]">
-                {carouselPicks.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-[var(--border)] bg-white px-3 py-2"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <CommunityTrendCard />
           </div>
         </section>
 
@@ -124,12 +85,6 @@ export default async function Home() {
             <div className="flex items-center justify-between">
               <h3 className="font-serif text-2xl font-semibold">커뮤니티 피드</h3>
               <div className="flex gap-2 text-xs font-semibold text-[var(--muted)]">
-                <button className="rounded-full bg-white px-3 py-2 shadow-sm">
-                  최신순
-                </button>
-                <button className="rounded-full border border-[var(--border)] px-3 py-2">
-                  인기순
-                </button>
                 <button className="rounded-full border border-[var(--border)] px-3 py-2">
                   팔로잉
                 </button>
