@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AuthButtons from "../../components/AuthButtons";
 import LogoMark from "../../components/LogoMark";
+import CommunityTrendCard from "../../components/CommunityTrendCard";
 import RecommendationList from "./RecommendationList";
 import { getBookRecommendationsServer } from "../../services/recommendationServerService";
 
@@ -65,7 +66,7 @@ export default async function BookRecommendationsPage() {
           </div>
         </header>
 
-        <section className="mt-10 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <section className="mt-10 grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
           <div className="rounded-[32px] border border-white/70 bg-white/80 p-8 shadow-[var(--shadow)]">
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
               큐레이터 노트
@@ -96,6 +97,7 @@ export default async function BookRecommendationsPage() {
           </div>
 
           <div className="space-y-4">
+            <CommunityTrendCard />
             {curatorNotes.map((note) => (
               <div
                 key={note.title}

@@ -19,13 +19,18 @@ const moodStyles: Record<string, string> = {
 };
 
 function formatPercent(value: number) {
-  return `${Math.round(value * 100)}%`;
+  const normalized = value > 1 ? value : value * 100;
+  const rounded = Math.round(normalized * 10) / 10;
+  return `${rounded}%`;
 }
 
 export default async function CommunityTrendCard() {
   const { response } = await getCommunityTrendServer();
   const trend = response ?? fallbackTrend;
   const isFallback = response === null;
+  if (isFallback) {
+    console.warn("[ai] CommunityTrendCard using fallback data");
+  }
   const analyzedAt = new Date(trend.analyzedAt);
 
   return (

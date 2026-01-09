@@ -1,5 +1,10 @@
+import { headers } from "next/headers";
 import { API_BASE_URL } from "./authService";
-import type { CommunityTrendResponse } from "../types/content";
+import { apiFetchJson } from "./apiClient";
+import type {
+  CommunityTrendResponse,
+  UserAnalysisResponse,
+} from "../types/content";
 
 export type CommunityTrendResult = {
   response: CommunityTrendResponse | null;
@@ -8,25 +13,45 @@ export type CommunityTrendResult = {
 
 export async function getCommunityTrendServer(): Promise<CommunityTrendResult> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/ai/community-trend`, {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      return { response: null, status: response.status };
-    }
-
-    const contentType = response.headers.get("content-type") ?? "";
-    if (!contentType.includes("application/json")) {
-      return { response: null, status: response.status };
-    }
-
+    const baseUrl = API_BASE_URL || "http://localhost:8080";
+    const cookieHeader = (await headers()).get("cookie");
     return {
-      response: (await response.json()) as CommunityTrendResponse,
+      response: await apiFetchJson<CommunityTrendResponse>(
+        `${baseUrl}/api/ai/community-trend`,
+        {
+          cache: "no-store",
+          headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+        },
+      ),
       status: 200,
     };
   } catch (error) {
     console.error("[ai] /api/ai/community-trend failed", error);
+    return { response: null, status: 500 };
+  }
+}
+
+export type UserAnalysisResult = {
+  response: UserAnalysisResponse | null;
+  status: number;
+};
+
+export async function getUserAnalysisServer(): Promise<UserAnalysisResult> {
+  try {
+    const baseUrl = API_BASE_URL || "http://localhost:8080";
+    const cookieHeader = (await headers()).get("cookie");
+    return {
+      response: await apiFetchJson<UserAnalysisResponse>(
+        `${baseUrl}/api/ai/user-analysis`,
+        {
+          cache: "no-store",
+          headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+        },
+      ),
+      status: 200,
+    };
+  } catch (error) {
+    console.error("[ai] /api/ai/user-analysis failed", error);
     return { response: null, status: 500 };
   }
 }

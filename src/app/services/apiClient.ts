@@ -8,11 +8,14 @@ export async function apiFetch(
   path: string,
   options: ApiFetchOptions = {},
 ): Promise<Response> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const isAbsoluteUrl = /^https?:\/\//.test(path);
+  const url = isAbsoluteUrl ? path : `${API_BASE_URL}${path}`;
+  const response = await fetch(url, {
     ...options,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      Accept: "application/json",
       ...options.headers,
     },
   });
@@ -42,6 +45,12 @@ export async function apiFetchJson<T>(
   // Check if response is JSON
   const contentType = response.headers.get("content-type");
   if (!contentType || !contentType.includes("application/json")) {
+    console.warn(
+      "[apiFetchJson] unexpected content-type",
+      response.url,
+      response.status,
+      contentType,
+    );
     throw new Error(
       `Expected JSON response but got ${contentType || "unknown content type"}. This might indicate an authentication redirect.`,
     );

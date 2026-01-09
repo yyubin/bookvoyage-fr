@@ -68,6 +68,12 @@ export default async function Home() {
               <button className="rounded-full border border-[var(--border)] bg-white/80 px-5 py-2 text-sm font-semibold text-[var(--ink)] transition hover:border-transparent hover:bg-white">
                 내 서재 만들기
               </button>
+              <Link
+                href="/books/ai"
+                className="rounded-full border border-[var(--border)] bg-white/80 px-5 py-2 text-sm font-semibold text-[var(--ink)] transition hover:border-transparent hover:bg-white"
+              >
+                AI 추천 도서
+              </Link>
             </div>
           </div>
 

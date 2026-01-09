@@ -217,6 +217,21 @@ export type ShelfAdditionTrendResponse = {
   items: ShelfAdditionTrendItem[];
 };
 
+export type UserAnalysisRecommendation = {
+  bookTitle: string;
+  author: string;
+  reason: string;
+};
+
+export type UserAnalysisResponse = {
+  userId: number;
+  personaType: string;
+  summary: string;
+  keywords: string[];
+  recommendations: UserAnalysisRecommendation[];
+  analyzedAt: string;
+};
+
 export type SearchResults = {
   query: string;
   books: BookSearchPage;
