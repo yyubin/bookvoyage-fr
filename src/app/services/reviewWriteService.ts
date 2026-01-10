@@ -1,5 +1,5 @@
 import { apiFetch, apiFetchJson } from "./apiClient";
-import type { ReviewResponse } from "../types/content";
+import type { ReviewExistenceResponse, ReviewResponse } from "../types/content";
 import type { BookSearchItem } from "../types/content";
 
 type CreateReviewPayload = {
@@ -74,4 +74,13 @@ export async function deleteReview(
   if (!response.ok) {
     throw new Error(`Failed to delete review: ${response.status}`);
   }
+}
+
+export async function getReviewExistence(
+  bookId: number | string,
+): Promise<ReviewExistenceResponse> {
+  const params = new URLSearchParams({ bookId: String(bookId) });
+  return apiFetchJson<ReviewExistenceResponse>(
+    `/api/reviews/exists?${params.toString()}`,
+  );
 }

@@ -309,6 +309,10 @@ export type BookmarkPageResponse = {
   nextCursor?: number | null;
 };
 
+export type ReviewExistenceResponse = {
+  hasReview: boolean;
+};
+
 export type ReviewResponse = {
   reviewId: number;
   userId?: number;

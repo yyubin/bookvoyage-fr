@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AuthButtons from "../../components/AuthButtons";
 import { useAuth } from "../../components/AuthProvider";
 import LogoMark from "../../components/LogoMark";
@@ -14,6 +14,7 @@ const BOOK_PAGE_SIZE = 6;
 
 export default function ReviewCreatePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isLoading } = useAuth();
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -32,6 +33,7 @@ export default function ReviewCreatePage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<BookSearchItem[]>([]);
   const [selectedBook, setSelectedBook] = useState<BookSearchItem | null>(null);
+  const [didInitSearch, setDidInitSearch] = useState(false);
   const [bookStartIndex, setBookStartIndex] = useState(0);
   const [bookNextStartIndex, setBookNextStartIndex] = useState<number | null>(
     null,
@@ -100,6 +102,23 @@ export default function ReviewCreatePage() {
       setIsSearching(false);
     }
   };
+
+  useEffect(() => {
+    if (didInitSearch || isLoading || !user) {
+      return;
+    }
+    const initialQuery =
+      searchParams?.get("q")?.trim() ||
+      searchParams?.get("book")?.trim() ||
+      "";
+    if (!initialQuery) {
+      setDidInitSearch(true);
+      return;
+    }
+    setSearchQuery(initialQuery);
+    void runBookSearch(initialQuery, 0);
+    setDidInitSearch(true);
+  }, [didInitSearch, isLoading, searchParams, user]);
 
   const handleSearch = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

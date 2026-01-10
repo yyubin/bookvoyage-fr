@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import type { UserBookResponse } from "../../../types/content";
 import {
   updateUserBookMemo,
@@ -8,6 +9,7 @@ import {
   updateUserBookRating,
   updateUserBookStatus,
 } from "../../../services/userBookService";
+import { getReviewExistence } from "../../../services/reviewWriteService";
 
 type UserBookDetailClientProps = {
   initialBook: UserBookResponse;
@@ -46,8 +48,17 @@ export default function UserBookDetailClient({
   const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [isSavingMemo, setIsSavingMemo] = useState(false);
   const [isSavingRating, setIsSavingRating] = useState(false);
+  const [isCheckingReview, setIsCheckingReview] = useState(false);
+  const [reviewExists, setReviewExists] = useState<boolean | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const showReviewCallout = book.status === "COMPLETED";
+  const showReadingPrompt =
+    book.status === "READING" || book.status === "WANT_TO_READ";
+  const readingPrompt =
+    book.status === "READING"
+      ? "읽는 중인 책이에요. 남은 페이지를 이어서 읽어보세요."
+      : "찜한 책이에요. 이번 주에 첫 장을 열어보는 건 어때요?";
 
   const handleStatusSave = async () => {
     if (isSavingStatus) {
@@ -121,6 +132,35 @@ export default function UserBookDetailClient({
     }
   };
 
+  useEffect(() => {
+    if (book.status !== "COMPLETED") {
+      setReviewExists(null);
+      setIsCheckingReview(false);
+      return;
+    }
+    let isActive = true;
+    setIsCheckingReview(true);
+    getReviewExistence(book.bookId)
+      .then((response) => {
+        if (isActive) {
+          setReviewExists(response.hasReview);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setReviewExists(null);
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsCheckingReview(false);
+        }
+      });
+    return () => {
+      isActive = false;
+    };
+  }, [book.bookId, book.status]);
+
   return (
     <main className="mt-10 rounded-[32px] border border-white/70 bg-white/85 p-8 shadow-[var(--shadow)]">
       <div className="flex flex-col gap-6 sm:flex-row">
@@ -165,6 +205,36 @@ export default function UserBookDetailClient({
               </span>
             ) : null}
           </div>
+          {showReviewCallout ? (
+            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--paper-strong)] px-4 py-3">
+              {isCheckingReview ? (
+                <div className="text-sm font-semibold text-[var(--muted)]">
+                  리뷰 작성 여부를 확인 중이에요.
+                </div>
+              ) : reviewExists ? (
+                <div className="text-sm font-semibold text-[var(--ink)]">
+                  이미 작성한 리뷰가 있는 책입니다.
+                </div>
+              ) : (
+                <>
+                  <div className="text-sm font-semibold text-[var(--ink)]">
+                    완독한 책, 지금 리뷰로 남겨보세요.
+                  </div>
+                  <Link
+                    href={`/reviews/new?q=${encodeURIComponent(book.title)}`}
+                    className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                  >
+                    리뷰 쓰기
+                  </Link>
+                </>
+              )}
+            </div>
+          ) : null}
+          {showReadingPrompt ? (
+            <div className="mt-5 rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm font-semibold text-[var(--muted)]">
+              {readingPrompt}
+            </div>
+          ) : null}
         </div>
       </div>
 
