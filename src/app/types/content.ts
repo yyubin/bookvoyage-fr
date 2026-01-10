@@ -280,6 +280,12 @@ export type UserBookListResponse = {
   items: UserBookResponse[];
 };
 
+export type UserBookStatisticsResponse = {
+  wantToReadCount: number;
+  readingCount: number;
+  completedCount: number;
+};
+
 export type UserReviewResponse = {
   reviewId: number;
   bookId?: number;

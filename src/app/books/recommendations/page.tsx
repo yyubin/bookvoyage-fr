@@ -98,19 +98,6 @@ export default async function BookRecommendationsPage() {
 
           <div className="space-y-4">
             <CommunityTrendCard />
-            {curatorNotes.map((note) => (
-              <div
-                key={note.title}
-                className="rounded-[24px] border border-[var(--border)] bg-[var(--card)] p-5 shadow-[var(--shadow)]"
-              >
-                <h3 className="font-serif text-xl font-semibold">
-                  {note.title}
-                </h3>
-                <p className="mt-2 text-sm text-[var(--muted)]">
-                  {note.description}
-                </p>
-              </div>
-            ))}
             <div className="rounded-[24px] border border-[var(--border)] bg-white/80 p-5 shadow-[var(--shadow)]">
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
                 추천 기준

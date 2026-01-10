@@ -114,10 +114,10 @@ export default function ReviewFeed({
                 </Link>
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-4">
-                    <div>
+                    <div className="min-w-0">
                       <Link
                         href={`/reviews/${review.reviewId}`}
-                        className="text-lg font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
+                        className="line-clamp-2 text-lg font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
                       >
                         {title}
                       </Link>
@@ -129,7 +129,7 @@ export default function ReviewFeed({
                       </p>
                     </div>
                     {typeof review.rating === "number" ? (
-                      <span className="rounded-full bg-[var(--paper-strong)] px-3 py-1 text-xs font-semibold text-[var(--muted)]">
+                      <span className="flex-shrink-0 rounded-full bg-[var(--paper-strong)] px-3 py-1 text-xs font-semibold text-[var(--muted)]">
                         평점 {review.rating}
                       </span>
                     ) : null}
