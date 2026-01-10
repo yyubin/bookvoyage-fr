@@ -70,9 +70,28 @@ export default async function Home() {
               </button>
               <Link
                 href="/books/ai"
-                className="rounded-full border border-[var(--border)] bg-white/80 px-5 py-2 text-sm font-semibold text-[var(--ink)] transition hover:border-transparent hover:bg-white"
+                className="group relative overflow-hidden rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 p-[2px] shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
               >
-                AI 추천 도서
+                <div className="flex items-center gap-2 rounded-full bg-white px-5 py-2">
+                  <svg
+                    className="h-4 w-4 text-purple-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-sm font-bold text-transparent">
+                    AI 추천 도서
+                  </span>
+                  <svg
+                    className="h-4 w-4 animate-pulse text-purple-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                </div>
+                <div className="absolute inset-0 -z-10 animate-pulse bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 opacity-30 blur-lg" />
               </Link>
             </div>
           </div>
