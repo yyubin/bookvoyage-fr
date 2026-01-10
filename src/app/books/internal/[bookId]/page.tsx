@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AuthButtons from "../../../components/AuthButtons";
 import AuthReviewButton from "../../../components/AuthReviewButton";
+import AddToLibraryButton from "../../../components/AddToLibraryButton";
 import LogoMark from "../../../components/LogoMark";
 import { notFound } from "next/navigation";
 import {
@@ -29,6 +30,19 @@ export default async function InternalBookPage({
     size: 20,
     sort: "recommended",
   });
+  const libraryBook = {
+    title: book.title,
+    authors: book.authors,
+    isbn10: book.isbn10 ?? null,
+    isbn13: book.isbn13 ?? null,
+    coverUrl: book.coverUrl ?? null,
+    publisher: book.publisher ?? null,
+    publishedDate: book.publishedDate ?? null,
+    description: book.description ?? null,
+    language: book.language ?? null,
+    pageCount: book.pageCount ?? null,
+    googleVolumeId: book.googleVolumeId ?? null,
+  };
 
   return (
     <div className="paper-texture min-h-screen">
@@ -100,6 +114,9 @@ export default async function InternalBookPage({
                       출간 {book.publishedDate}
                     </span>
                   ) : null}
+                </div>
+                <div className="mt-4">
+                  <AddToLibraryButton book={libraryBook} />
                 </div>
               </div>
             </div>

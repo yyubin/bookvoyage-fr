@@ -286,6 +286,21 @@ export type UserBookStatisticsResponse = {
   completedCount: number;
 };
 
+export type WishlistItem = {
+  wishlistId: number;
+  bookId: number;
+  title: string;
+  authors: string[];
+  coverUrl: string | null;
+  publisher: string | null;
+  publishedDate: string | null;
+  createdAt: string;
+};
+
+export type WishlistResponse = {
+  items: WishlistItem[];
+};
+
 export type UserReviewResponse = {
   reviewId: number;
   bookId?: number;

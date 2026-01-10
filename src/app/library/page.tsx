@@ -7,6 +7,7 @@ import {
   getBookmarkedReviews,
   getUserBooksByStatus,
   getUserReviewsByUser,
+  getWishlist,
 } from "../services/libraryService";
 
 export default async function LibraryPage() {
@@ -20,19 +21,26 @@ export default async function LibraryPage() {
     redirect("/auth?redirect=/library");
   }
 
-  const [readingResponse, finishedResponse, reviewsResponse, bookmarksResponse] =
-    await Promise.all([
-      getUserBooksByStatus("READING"),
-      getUserBooksByStatus("COMPLETED"),
-      getUserReviewsByUser(userId, 3),
-      getBookmarkedReviews(3),
-    ]);
+  const [
+    readingResponse,
+    finishedResponse,
+    reviewsResponse,
+    bookmarksResponse,
+    wishlistResponse,
+  ] = await Promise.all([
+    getUserBooksByStatus("READING"),
+    getUserBooksByStatus("COMPLETED"),
+    getUserReviewsByUser(userId, 3),
+    getBookmarkedReviews(3),
+    getWishlist(),
+  ]);
 
   const readingBooks = readingResponse.items;
   const finishedBooks = finishedResponse.items;
   const myReviews = reviewsResponse.reviews;
   const bookmarkedReviews =
     bookmarksResponse.reviews ?? bookmarksResponse.items ?? [];
+  const wishlistItems = wishlistResponse.items;
 
   const formatStatus = (status: string) => {
     switch (status) {
@@ -175,6 +183,36 @@ export default async function LibraryPage() {
               >
                 리뷰 전체 보기
               </Link>
+            </div>
+
+            <div className="rounded-[28px] border border-[var(--border)] bg-white/85 p-6 shadow-[var(--shadow)]">
+              <div className="flex items-center justify-between gap-4">
+                <h3 className="font-serif text-xl font-semibold">위시리스트</h3>
+                <span className="text-xs font-semibold text-[var(--muted)]">
+                  {wishlistItems.length}권
+                </span>
+              </div>
+              <div className="mt-4 space-y-3 text-sm">
+                {wishlistItems.slice(0, 3).map((item) => (
+                  <Link
+                    key={item.wishlistId}
+                    href={`/books/internal/${item.bookId}`}
+                    className="block rounded-2xl border border-[var(--border)] bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md"
+                  >
+                    <p className="font-semibold text-[var(--ink)]">
+                      {item.title}
+                    </p>
+                    <p className="text-xs text-[var(--muted)]">
+                      {item.authors.join(", ")}
+                    </p>
+                  </Link>
+                ))}
+                {wishlistItems.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-[var(--border)] bg-white/60 px-4 py-3 text-xs text-[var(--muted)]">
+                    위시리스트가 비어 있습니다.
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             <div className="rounded-[28px] border border-[var(--border)] bg-white/85 p-6 shadow-[var(--shadow)]">

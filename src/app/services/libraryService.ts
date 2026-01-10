@@ -5,6 +5,7 @@ import type {
   UserBookListResponse,
   UserBookResponse,
   UserReviewPageResponse,
+  WishlistResponse,
 } from "../types/content";
 
 async function fetchWithAuth<T>(path: string): Promise<T> {
@@ -56,4 +57,16 @@ export async function getBookmarkedReviews(
   return fetchWithAuth<BookmarkPageResponse>(
     `/api/bookmarks?${params.toString()}`,
   );
+}
+
+export async function getWishlist(
+  sort?: string,
+): Promise<WishlistResponse> {
+  const params = new URLSearchParams();
+  if (sort) {
+    params.set("sort", sort);
+  }
+  const suffix = params.toString();
+  const path = suffix ? `/api/wishlist?${suffix}` : "/api/wishlist";
+  return fetchWithAuth<WishlistResponse>(path);
 }
