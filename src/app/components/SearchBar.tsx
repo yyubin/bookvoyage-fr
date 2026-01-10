@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const trendingKeywords = [
+const fallbackKeywords = [
   "무라카미 하루키",
   "추리소설",
   "자기계발",
@@ -12,9 +12,17 @@ const trendingKeywords = [
   "에세이",
 ];
 
-export default function SearchBar() {
+type SearchBarProps = {
+  trendingKeywords?: string[];
+};
+
+export default function SearchBar({ trendingKeywords }: SearchBarProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const keywords =
+    trendingKeywords && trendingKeywords.length > 0
+      ? trendingKeywords
+      : fallbackKeywords;
 
   const submit = (searchQuery?: string) => {
     const value = (searchQuery || query).trim();
@@ -75,7 +83,7 @@ export default function SearchBar() {
           인기 키워드
         </span>
         <div className="flex flex-wrap gap-2">
-          {trendingKeywords.map((keyword) => (
+          {keywords.map((keyword) => (
             <button
               key={keyword}
               onClick={() => handleKeywordClick(keyword)}

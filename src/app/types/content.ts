@@ -195,6 +195,19 @@ export type CommunityTrendResponse = {
   analyzedAt: string;
 };
 
+export type TrendingKeywordItem = {
+  keyword: string;
+  score: number;
+  rank: number;
+  trend: string;
+};
+
+export type TrendingKeywordResponse = {
+  keywords: TrendingKeywordItem[];
+  period: string;
+  totalCount: number;
+};
+
 export type ShelfAdditionTrendBook = {
   bookId: number | null;
   title: string;

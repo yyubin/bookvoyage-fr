@@ -2,7 +2,7 @@ import { getCommunityTrendServer } from "../services/aiServerService";
 import type { CommunityTrendResponse } from "../types/content";
 
 const fallbackTrend: CommunityTrendResponse = {
-  keywords: ["잔잔한 몰입", "도시의 빛이 있는 이야기", "짧고 깊은 책"],
+  keywords: ["잔잔한 몰입", "도시의 빛", "짧고 깊은 책"],
   summary: "오늘은 조용히 곁에 머무는 이야기들이 함께 읽히고 있어요.",
   genres: [
     { genre: "에세이", percentage: 0.32, mood: "상승세" },
