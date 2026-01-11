@@ -208,6 +208,21 @@ export type TrendingKeywordResponse = {
   totalCount: number;
 };
 
+export type ReviewCircleTopic = {
+  keyword: string;
+  reviewCount: number;
+  score: number;
+  lastActivityAt: string;
+};
+
+export type ReviewCircleResponse = {
+  window: string;
+  topics: ReviewCircleTopic[];
+  similarUserCount: number;
+  calculatedAt: string;
+  isFallback: boolean;
+};
+
 export type ShelfAdditionTrendBook = {
   bookId: number | null;
   title: string;

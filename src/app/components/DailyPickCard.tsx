@@ -1,16 +1,4 @@
 import { getShelfAdditionTrendServer } from "../services/bookTrendServerService";
-import type { ShelfAdditionTrendItem } from "../types/content";
-
-const fallbackPick: ShelfAdditionTrendItem = {
-  rank: 1,
-  addedCount: 3400,
-  book: {
-    bookId: null,
-    title: "레슨 인 케미스트리",
-    authors: ["보니 가머스"],
-    coverUrl: null,
-  },
-};
 
 function formatCount(count: number) {
   if (count >= 1000) {
@@ -22,7 +10,23 @@ function formatCount(count: number) {
 
 export default async function DailyPickCard() {
   const { response } = await getShelfAdditionTrendServer(1);
-  const pick = response?.items[0] ?? fallbackPick;
+  const pick = response?.items[0];
+
+  if (!pick) {
+    return (
+      <div className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
+          데일리 픽
+        </p>
+        <h3 className="mt-3 font-serif text-2xl font-semibold">
+          오늘 가장 많이 읽히는 책
+        </h3>
+        <p className="mt-4 text-sm text-[var(--muted)]">
+          아직 읽히고 있는 책이 없어요. 가장 먼저 책을 읽어주세요.
+        </p>
+      </div>
+    );
+  }
   const coverStyle = pick.book.coverUrl
     ? { backgroundImage: `url(${pick.book.coverUrl})` }
     : undefined;

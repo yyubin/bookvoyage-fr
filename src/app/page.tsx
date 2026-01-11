@@ -8,6 +8,7 @@ import LogoMark from "./components/LogoMark";
 import CommunityTrendCard from "./components/CommunityTrendCard";
 import DailyPickCard from "./components/DailyPickCard";
 import UserLibraryCard from "./components/UserLibraryCard";
+import ReviewCircleCard from "./components/ReviewCircleCard";
 import { getReviewRecommendationsServer } from "./services/recommendationServerService";
 import { getTrendingKeywordsServer } from "./services/searchKeywordTrendServerService";
 
@@ -131,32 +132,7 @@ export default async function Home() {
           <aside className="space-y-6">
             <UserLibraryCard />
 
-            <div className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow)]">
-              <h4 className="font-serif text-xl font-semibold">리뷰 서클</h4>
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                비슷한 취향의 독자들이 지금 이야기하는 주제들.
-              </p>
-              <div className="mt-4 space-y-3 text-sm">
-                <div className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-3">
-                  <span className="font-semibold text-[var(--ink)]">
-                    모던 클래식
-                  </span>
-                  <span className="text-xs text-[var(--muted)]">128개 글</span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-3">
-                  <span className="font-semibold text-[var(--ink)]">
-                    소프트 SF
-                  </span>
-                  <span className="text-xs text-[var(--muted)]">92개 글</span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-3">
-                  <span className="font-semibold text-[var(--ink)]">
-                    치유 에세이
-                  </span>
-                  <span className="text-xs text-[var(--muted)]">64개 글</span>
-                </div>
-              </div>
-            </div>
+            <ReviewCircleCard />
           </aside>
         </div>
 
