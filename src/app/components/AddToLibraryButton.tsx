@@ -31,6 +31,14 @@ export default function AddToLibraryButton({ book }: AddToLibraryButtonProps) {
     return query ? `${pathname}?${query}` : pathname;
   }, [pathname, searchParams]);
 
+  if (!isLoading && !user) {
+    return (
+      <p className="text-xs font-semibold text-[var(--muted)]">
+        로그인하고 서재에 추가해보세요.
+      </p>
+    );
+  }
+
   const handleAdd = async () => {
     if (isSaving || isLoading) {
       return;

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { GOOGLE_OAUTH_URL } from "../services/authService";
 import LogoMark from "../components/LogoMark";
+import AuthLoginForm from "../components/AuthLoginForm";
 
 export default function AuthPage() {
   return (
@@ -29,14 +30,13 @@ export default function AuthPage() {
         <main className="mt-16 grid flex-1 items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="rounded-[32px] border border-white/70 bg-white/80 p-8 shadow-[var(--shadow)]">
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
-              소셜 로그인
+              로그인
             </p>
             <h2 className="mt-4 font-serif text-3xl font-semibold">
               책 이야기를 나누려면 로그인하세요.
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">
-              Bookvoyage는 OAuth 2.0 기반 소셜 로그인만 지원합니다. 현재는
-              구글 계정으로 빠르게 시작할 수 있어요.
+              소셜 로그인 또는 이메일 로그인으로 시작할 수 있어요.
             </p>
             <div className="mt-8">
               <a
@@ -48,6 +48,12 @@ export default function AuthPage() {
                 </span>
                 Google로 계속하기
               </a>
+            </div>
+            <div className="mt-10 border-t border-[var(--border)] pt-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
+                이메일 로그인
+              </p>
+              <AuthLoginForm />
             </div>
             <p className="mt-4 text-xs text-[var(--muted)]">
               로그인 시 서비스 이용약관과 개인정보처리방침에 동의한 것으로
